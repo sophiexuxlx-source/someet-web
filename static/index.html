@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SoMeet - AI Speech Studio</title>
+  <!-- Firebase JS SDK (v10 modular CDN) -->
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
+  
+  <style>
+    :root {
+      --bg: #F4F8FB;              /* Light, crisp sky/ice tint */
+      --card-bg: #FFFFFF;
+      --text: #1E293B;            /* Deep slate */
+      --subtext: #64748B;         /* Muted slate */
+      --primary: #5B9BD5;         /* Excel Accent 5 primary blue */
+      --primary-hover: #41719C;   /* Deep royal steel */
+      --border: #9CC3E5;          /* Excel highlighted swatch (soft cerulean) */
+      --accent-pill: #FCE4D6;     /* Subtle warm peach accent from demo cell */
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #DCEAF7;
+      background: #FFFFFF;
+    }
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-icon {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, #7FABD6, #5B9BD5);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+      box-shadow: 0 2px 6px rgba(91, 155, 213, 0.3);
+    }
+    .logo-title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    .auth-bar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .perks-badge {
+      background: #FCE4D6;
+      color: #943A1B;
+      border: 1px solid #F8CBAD;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-login {
+      background: var(--text);
+      color: white;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn-login:hover {
+      opacity: 0.9;
+    }
+
+    /* Early Bird Banner */
+    .banner-container {
+      max-width: 900px;
+      margin: 20px auto 0;
+      padding: 0 20px;
+      width: 100%;
+    }
+    .banner {
+      background: linear-gradient(135deg, #7FABD6 0%, #4B79A1 100%);
+      color: white;
+      padding: 14px 20px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 16px rgba(91, 155, 213, 0.28);
+    }
+    .banner-text h4 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+    .banner-text p {
+      font-size: 12px;
+      opacity: 0.95;
+    }
+
+    /* Main Studio Area */
+    main {
+      flex: 1;
+      max-width: 900px;
+      margin: 24px auto 40px;
+      padding: 0 20px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .status-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .quota-pill {
+      background: #EBF4FC;
+      color: #2B6CB0;
+      font-size: 13px;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    .latency-pill {
+      background: #E6F4EA;
+      color: #137333;
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .mic-indicator {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #334155;
+    }
+    .mic-meter-bar {
+      width: 60px;
+      height: 8px;
+      background: #E2E8F0;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .mic-meter-fill {
+      width: 0%;
+      height: 100%;
+      background: #22C55E;
+      transition: width 0.06s;
+    }
+
+    .timer-display {
+      font-size: 68px;
+      font-weight: 300;
+      letter-spacing: -2px;
+      color: #0F172A;
+      margin-bottom: 4px;
+    }
+    .timer-subtitle {
+      font-size: 14px;
+      color: var(--subtext);
+      margin-bottom: 28px;
+    }
+
+    /* Cards */
+    .studio-card {
+      width: 100%;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px 24px;
+      text-align: left;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+      margin-bottom: 24px;
+    }
+    .card-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .card-header-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: #64748B;
+      letter-spacing: 0.6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .action-btn-group {
+      display: flex;
+      gap: 8px;
+    }
+    .btn-action {
+      background: #F1F5F9;
+      color: #334155;
+      border: 1px solid #CBD5E1;
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .btn-action:hover {
+      background: #E2E8F0;
+      color: #0F172A;
+    }
+    .btn-action:active {
+      transform: scale(0.98);
+    }
+    .btn-summary {
+      background: linear-gradient(135deg, #7FABD6 0%, #5B9BD5 100%);
+      color: white;
+      border: none;
+    }
+    .btn-summary:hover {
+      background: linear-gradient(135deg, #5B9BD5 0%, #41719C 100%);
+      color: white;
+    }
+    .btn-new-session {
+      background: linear-gradient(135deg, #92D050 0%, #70AD47 100%) !important;
+      border: none !important;
+      color: #FFFFFF !important;
+      text-shadow: 0 1px 2px rgba(0, 50, 0, 0.25);
+      font-size: 14px !important;
+      font-weight: 700 !important;
+      padding: 9px 26px !important;
+      border-radius: 24px !important;
+      box-shadow: 0 4px 14px rgba(112, 173, 71, 0.35) !important;
+      transition: all 0.2s ease !important;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-new-session:hover {
+      background: linear-gradient(135deg, #70AD47 0%, #548235 100%) !important;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(84, 130, 53, 0.45) !important;
+    }
+    .btn-new-session:active {
+      transform: translateY(0);
+    }
+
+    .transcript-body {
+      font-size: 16px;
+      line-height: 1.65;
+      color: var(--text);
+      min-height: 220px;
+      max-height: 420px;
+      overflow-y: auto;
+      word-break: break-word;
+    }
+    .placeholder-text {
+      color: #94A3B8;
+      font-style: italic;
+    }
+
+    /* Summary Card Content */
+    .summary-content {
+      font-size: 14px;
+      line-height: 1.65;
+      color: #334155;
+      padding-top: 8px;
+    }
+    .summary-content h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #0F172A;
+      margin-top: 14px;
+      margin-bottom: 6px;
+    }
+    .summary-content h3:first-child {
+      margin-top: 0;
+    }
+    .summary-content ul {
+      margin-left: 20px;
+      margin-bottom: 10px;
+    }
+    .summary-content li {
+      margin-bottom: 4px;
+    }
+
+    /* Big Record Button */
+    .controls-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .btn-record {
+      width: 146px;
+      height: 52px;
+      background: linear-gradient(135deg, #7FABD6 0%, #5B9BD5 100%);
+      color: white;
+      border: none;
+      border-radius: 26px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.2s;
+      box-shadow: 0 4px 18px rgba(91, 155, 213, 0.35);
+    }
+    .btn-record:hover {
+      background: linear-gradient(135deg, #5B9BD5 0%, #41719C 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 22px rgba(65, 113, 156, 0.45);
+    }
+    .btn-record.recording {
+      background: #EF4444;
+      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
+      animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1); }
+    }
+    .shortcut-hint {
+      font-size: 12px;
+      color: var(--subtext);
+    }
+
+    footer {
+      padding: 24px;
+      text-align: center;
+      font-size: 12px;
+      color: #94A3B8;
+      border-top: 1px solid var(--border);
+      background: white;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="logo-container">
+      <div class="logo-icon">SM</div>
+      <div class="logo-title">SoMeet</div>
+    </div>
+    <div class="auth-bar">
+      <button class="btn-action btn-new-session" id="newSessionHeaderBtn" onclick="startNewSession()" title="Start a fresh recording session" style="padding: 6px 16px !important; font-size: 12.5px !important; border-radius: 16px !important;">
+        <span>✨</span> New Session
+      </button>
+      <div class="perks-badge" id="userBadge">
+        <span>🎁 Founder Tier</span>
+      </div>
+      <button class="btn-login" id="authBtn" onclick="handleAuth()">Sign In / Register</button>
+    </div>
+  </header>
+
+  <!-- Main Body -->
+  <main>
+    <div class="timer-display" id="timer">00:00</div>
+    <div class="timer-subtitle">Click Record to start live captioning, then begin speaking once the timer starts.</div>
+
+    <!-- Live Caption Card -->
+    <div class="studio-card">
+      <div class="card-header-row">
+        <div class="card-header-title">
+          <span>🎙</span> Live Caption
+        </div>
+        <div class="action-btn-group">
+          <button class="btn-action" onclick="copyTranscript()" title="Copy transcript to clipboard">
+            <span>📋</span> Copy
+          </button>
+          <button class="btn-action" onclick="downloadWordTranscript()" title="Download as formatted Microsoft Word document (.docx)">
+            <span>📄</span> Word (.docx)
+          </button>
+        </div>
+      </div>
+      <div class="transcript-body" id="transcriptText">
+        <span class="placeholder-text">Transcribed speech will appear here continuously in real time as you speak...</span>
+      </div>
+
+      <!-- Integrated Audio Play & Download Bar in the middle -->
+      <div id="audioBarContainer" style="margin-top: 18px; padding: 10px 14px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #475569; white-space: nowrap;">
+          <span>🎧</span>
+          <span>Audio Playback:</span>
+        </div>
+        <audio id="audioPlayer" controls style="flex: 1; min-width: 220px; height: 36px; border-radius: 6px;"></audio>
+        <button class="btn-action" id="audioDownloadBarBtn" onclick="downloadAudioWav()" title="Download raw speech recording as uncompressed .WAV audio file">
+          <span>📥</span> Download Audio (.wav)
+        </button>
+      </div>
+    </div>
+
+    <!-- AI Summary Card -->
+    <div class="studio-card" id="summaryCard">
+      <div class="card-header-row">
+        <div class="card-header-title">
+          <span>✨</span> AI Meeting Intelligence & Summary
+        </div>
+        <div class="action-btn-group">
+          <button class="btn-action btn-summary" id="summarizeBtn" onclick="generateSummary()">
+            <span>⚡</span> Generate Summary
+          </button>
+          <button class="btn-action" onclick="copySummary()" title="Copy summary to clipboard">
+            <span>📋</span> Copy
+          </button>
+          <button class="btn-action" onclick="downloadWordSummary()" title="Download summary as formatted Microsoft Word document (.docx)">
+            <span>📄</span> Word (.docx)
+          </button>
+        </div>
+      </div>
+      <div class="summary-content" id="summaryText">
+        <span class="placeholder-text">Click "Generate Summary" after speaking to extract Key Points, Decisions, and Action Items.</span>
+      </div>
+    </div>
+
+    <!-- Record Button & Controls -->
+    <div class="controls-container">
+      <button class="btn-record" id="recordBtn" onclick="toggleRecording()">
+        <span id="btnIcon">🎙</span>
+        <span id="btnText">Record</span>
+      </button>
+      <div style="margin-top: 16px; display: flex; align-items: center; justify-content: center;">
+        <button class="btn-action btn-new-session" onclick="startNewSession()" title="Reset and start a fresh session">
+          <span>✨</span> New Session
+        </button>
+      </div>
+      <div class="shortcut-hint" style="margin-top: 12px;">Spacebar starts and stops recording as well.</div>
+    </div>
+  </main>
+
+  <footer>
+    SoMeet • Google Gemini Audio Intelligence & Meeting Summary
+  </footer>
+
+  <script>
+    // State
+    let isRecording = false;
+    let isFinalizing = false;
+    let timerInterval = null;
+    let elapsedSeconds = 0;
+    let accumulatedText = "";
+    let meetingSummaryText = "";
+    let ws = null;
+    let audioContext = null;
+    let mediaStream = null;
+    let processorNode = null;
+    let sourceNode = null;
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let allPcmChunks = [];
+    let latestWavBlob = null;
+    let receivedWsTranscript = false;
+    let liveStreamingText = "";
+    let speechRecognizer = null;
+
+    function updateTimerDisplay() {
+      const mins = String(Math.floor(elapsedSeconds / 60)).padStart(2, '0');
+      const secs = String(elapsedSeconds % 60).padStart(2, '0');
+      document.getElementById('timer').innerText = `${mins}:${secs}`;
+    }
+
+    // Downsample raw browser audio buffer to 16kHz 16-bit PCM (Whisper native format)
+    function downsampleTo16k(inputBuffer, inputSampleRate) {
+      if (inputSampleRate === 16000) {
+        const pcm = new Int16Array(inputBuffer.length);
+        for (let i = 0; i < inputBuffer.length; i++) {
+          let s = Math.max(-1, Math.min(1, inputBuffer[i]));
+          pcm[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+        }
+        return pcm;
+      }
+      const ratio = inputSampleRate / 16000;
+      const newLength = Math.floor(inputBuffer.length / ratio);
+      const pcm = new Int16Array(newLength);
+      for (let i = 0; i < newLength; i++) {
+        let originalIdx = Math.floor(i * ratio);
+        let s = Math.max(-1, Math.min(1, inputBuffer[originalIdx]));
+        pcm[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+      }
+      return pcm;
+    }
+
+    async function toggleRecording() {
+      if (isFinalizing) return;
+      const btn = document.getElementById('recordBtn');
+      const btnText = document.getElementById('btnText');
+      const micIndicator = document.getElementById('micIndicator');
+      const micLevel = document.getElementById('micLevel');
+
+      if (!isRecording) {
+        try {
+          // 1. Request microphone
+          mediaStream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              channelCount: 1,
+              echoCancellation: true,
+              noiseSuppression: true
+            }
+          });
+
+          // 2. Open Realtime WebSocket
+          const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+          const wsUrl = `${protocol}//${window.location.host}/api/realtime/ws`;
+          ws = new WebSocket(wsUrl);
+          ws.binaryType = 'arraybuffer';
+          receivedWsTranscript = false;
+          liveStreamingText = "";
+
+          ws.onopen = () => {
+            console.log("[WS] Connected, sending start");
+            ws.send(JSON.stringify({ type: 'start' }));
+          };
+
+          ws.onmessage = (event) => {
+            try {
+              const data = JSON.parse(event.data);
+              console.log("[WS Message]", data);
+              if (data.type === 'transcript_delta' && data.text) {
+                receivedWsTranscript = true;
+                if (!speechRecognizer) {
+                  liveStreamingText = data.text;
+                  renderTranscript(data.text);
+                }
+              } else if (data.type === 'transcript_completed' && data.text) {
+                receivedWsTranscript = true;
+                if (!speechRecognizer) {
+                  commitTranscript(data.text);
+                }
+              } else if (data.type === 'turn_completed') {
+                if (data.text && !speechRecognizer) {
+                  receivedWsTranscript = true;
+                  commitTranscript(data.text);
+                } else if (liveStreamingText && !speechRecognizer) {
+                  receivedWsTranscript = true;
+                  commitTranscript(liveStreamingText);
+                }
+                finishCleanup();
+              }
+            } catch (err) {
+              console.error("[WS Parse Error]", err);
+            }
+          };
+
+          ws.onerror = (err) => {
+            console.error("[WS Error]", err);
+          };
+
+          // 3. Initialize AudioContext and FORCE RESUME (critical for Chrome/Edge)
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          audioContext = new AudioContextClass();
+          if (audioContext.state === 'suspended') {
+            await audioContext.resume();
+          }
+
+          sourceNode = audioContext.createMediaStreamSource(mediaStream);
+          // 4096 frames gives ~90ms latency
+          processorNode = audioContext.createScriptProcessor(4096, 1, 1);
+
+          processorNode.onaudioprocess = (event) => {
+            if (!isRecording) return;
+            const input = event.inputBuffer.getChannelData(0);
+
+            // Compute RMS volume level for live visual feedback
+            let sum = 0;
+            for (let i = 0; i < input.length; i++) sum += input[i] * input[i];
+            const rms = Math.sqrt(sum / input.length);
+            const levelPercent = Math.min(100, Math.round(rms * 450));
+            if (micLevel) micLevel.style.width = `${levelPercent}%`;
+
+            // Downsample and stream PCM16 bytes
+            const pcm16 = downsampleTo16k(input, audioContext.sampleRate);
+            allPcmChunks.push(pcm16);
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+              ws.send(pcm16.buffer);
+            }
+          };
+
+          sourceNode.connect(processorNode);
+          processorNode.connect(audioContext.destination);
+
+          // 4. Parallel MediaRecorder safety backup
+          recordedChunks = [];
+          try {
+            mediaRecorder = new MediaRecorder(mediaStream);
+            mediaRecorder.ondataavailable = (e) => {
+              if (e.data.size > 0) recordedChunks.push(e.data);
+            };
+            mediaRecorder.onstop = () => {
+              const mime = mediaRecorder.mimeType || 'audio/webm';
+              const audioBlob = new Blob(recordedChunks, { type: mime });
+              refineWithGemini(audioBlob);
+            };
+            mediaRecorder.start(1000);
+          } catch(e) {
+            console.warn("[MediaRecorder] Fallback recorder not available:", e);
+          }
+
+          // 5. Native Browser Real-Time Speech Recognition (Antigravity-style word-by-word streaming)
+          const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+          if (SpeechRecognitionClass) {
+            try {
+              speechRecognizer = new SpeechRecognitionClass();
+              speechRecognizer.continuous = true;
+              speechRecognizer.interimResults = true;
+              speechRecognizer.lang = 'en-US';
+
+              speechRecognizer.onresult = (event) => {
+                let interim = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                  const part = event.results[i][0].transcript;
+                  if (event.results[i].isFinal) {
+                    commitTranscript(part);
+                  } else {
+                    interim += part;
+                  }
+                }
+                if (interim.trim()) {
+                  renderInterimTranscript(interim.trim());
+                }
+              };
+
+              speechRecognizer.onerror = (e) => {
+                console.warn("[SpeechRecognition Error]", e);
+              };
+
+              speechRecognizer.onend = () => {
+                if (isRecording && speechRecognizer) {
+                  try { speechRecognizer.start(); } catch(e) {}
+                }
+              };
+
+              speechRecognizer.start();
+            } catch (err) {
+              console.warn("[SpeechRecognition Init Error]", err);
+            }
+          }
+
+          // Update UI
+          isRecording = true;
+          if (micIndicator) micIndicator.style.display = 'flex';
+          btn.classList.add('recording');
+          btnText.innerText = "Stop";
+
+          const transcriptEl = document.getElementById('transcriptText');
+          if (!accumulatedText) {
+            transcriptEl.innerHTML = `<span style="color: #64748B;">🎙 Listening and streaming speech...</span>`;
+          }
+
+          elapsedSeconds = 0;
+          updateTimerDisplay();
+          timerInterval = setInterval(() => {
+            elapsedSeconds++;
+            updateTimerDisplay();
+          }, 1000);
+
+        } catch (err) {
+          alert("Microphone or Audio error: " + err.message);
+        }
+      } else {
+        // User clicked STOP
+        isRecording = false;
+        isFinalizing = true;
+        clearInterval(timerInterval);
+        btn.classList.remove('recording');
+        btnText.innerText = "Processing...";
+        if (micIndicator) micIndicator.style.display = 'none';
+        if (micLevel) micLevel.style.width = '0%';
+
+        if (speechRecognizer) {
+          try { speechRecognizer.stop(); } catch(e) {}
+        }
+
+        const transcriptEl = document.getElementById('transcriptText');
+        const currentDisplay = (accumulatedText ? accumulatedText + " " : "") + (liveStreamingText || "");
+        if (currentDisplay.trim()) {
+          transcriptEl.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${currentDisplay.trim()}</span> <span style="color: #5B9BD5; font-size: 13px;">(✨ Refining with Gemini AI...)</span>`;
+        } else {
+          transcriptEl.innerHTML = `<span style="color: #5B9BD5;">✨ Transcribing with Google Gemini AI...</span>`;
+        }
+
+        // Stop media recorder -> triggers onstop -> refineWithGemini()
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+          mediaRecorder.stop();
+        } else if (allPcmChunks.length > 0) {
+          const wavBlob = createWavBlob(allPcmChunks, 16000);
+          refineWithGemini(wavBlob);
+        } else {
+          finishCleanup();
+        }
+
+        // Close realtime WS stream
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'stop' }));
+        }
+
+        // Safety timeout
+        setTimeout(() => {
+          if (isFinalizing) {
+            finishCleanup();
+          }
+        }, 12000);
+      }
+    }
+
+    async function refineWithGemini(audioBlob) {
+      if (!audioBlob || audioBlob.size < 500) {
+        finishCleanup();
+        return;
+      }
+
+      try {
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+        reader.onloadend = async () => {
+          try {
+            const base64Audio = reader.result.split(',')[1];
+            const mimeType = audioBlob.type || 'audio/webm';
+            const resp = await fetch('/api/transcribe', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                audio_base64: base64Audio,
+                mime_type: mimeType,
+                context: accumulatedText
+              })
+            });
+
+            if (resp.ok) {
+              const data = await resp.json();
+              if (data.transcript && data.transcript.trim()) {
+                console.log("[Gemini AI] High-precision transcript:", data.transcript);
+                accumulatedText = data.transcript.trim();
+                liveStreamingText = "";
+                const el = document.getElementById('transcriptText');
+                el.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${accumulatedText}</span>`;
+                el.scrollTop = el.scrollHeight;
+              }
+            }
+          } catch (err) {
+            console.error("Gemini transcribe error:", err);
+          } finally {
+            finishCleanup();
+          }
+        };
+      } catch (err) {
+        console.error("FileReader error:", err);
+        finishCleanup();
+      }
+    }
+
+    function finishCleanup() {
+      isFinalizing = false;
+      const btnText = document.getElementById('btnText');
+      btnText.innerText = "Record";
+
+      if (ws) {
+        try { ws.close(); } catch(e) {}
+        ws = null;
+      }
+      if (processorNode) {
+        try { processorNode.disconnect(); } catch(e) {}
+        processorNode = null;
+      }
+      if (sourceNode) {
+        try { sourceNode.disconnect(); } catch(e) {}
+        sourceNode = null;
+      }
+      if (audioContext) {
+        try { audioContext.close(); } catch(e) {}
+        audioContext = null;
+      }
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(t => t.stop());
+        mediaStream = null;
+      }
+
+      // Generate standard uncompressed WAV audio file from recorded PCM samples
+      if (allPcmChunks.length > 0) {
+        latestWavBlob = createWavBlob(allPcmChunks, 16000);
+        const audioPlayer = document.getElementById('audioPlayer');
+        const dlBtn = document.getElementById('audioDownloadBarBtn');
+        if (audioPlayer) {
+          audioPlayer.src = URL.createObjectURL(latestWavBlob);
+          audioPlayer.load();
+        }
+        if (dlBtn) {
+          dlBtn.style.background = '#EBF4FC';
+          dlBtn.style.borderColor = '#9CC3E5';
+          dlBtn.style.color = '#2B6CB0';
+        }
+      }
+
+      if (speechRecognizer) {
+        try { speechRecognizer.stop(); } catch(e) {}
+        speechRecognizer = null;
+      }
+
+      // If accumulatedText is still empty but liveStreamingText had text, preserve it!
+      if (!accumulatedText.trim() && liveStreamingText && liveStreamingText.trim()) {
+        accumulatedText = liveStreamingText.trim();
+      }
+      liveStreamingText = "";
+
+      const el = document.getElementById('transcriptText');
+      if (accumulatedText && accumulatedText.trim()) {
+        el.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${accumulatedText.trim()}</span>`;
+        el.scrollTop = el.scrollHeight;
+      } else {
+        el.innerHTML = `<span class="placeholder-text">Audio processed. If speech was too brief, click Record to speak again.</span>`;
+      }
+    }
+
+    function renderInterimTranscript(interim) {
+      liveStreamingText = interim;
+      const el = document.getElementById('transcriptText');
+      const base = accumulatedText ? `<span style="color: #0F172A; font-weight: 500;">${accumulatedText}</span> ` : '';
+      el.innerHTML = `${base}<span style="color: #64748B; font-style: italic;">${interim}</span>`;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function renderTranscript(currentDelta) {
+      liveStreamingText = currentDelta;
+      const el = document.getElementById('transcriptText');
+      const displayText = accumulatedText ? `${accumulatedText} ${currentDelta}` : currentDelta;
+      el.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${displayText}</span>`;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function commitTranscript(completedText) {
+      if (!completedText || !completedText.trim()) return;
+      completedText = completedText.trim();
+      if (accumulatedText) {
+        if (!accumulatedText.endsWith(completedText)) {
+          accumulatedText += " " + completedText;
+        }
+      } else {
+        accumulatedText = completedText;
+      }
+      liveStreamingText = "";
+      const el = document.getElementById('transcriptText');
+      el.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${accumulatedText}</span>`;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    // AI Meeting Summarization
+    async function generateSummary() {
+      if (!accumulatedText.trim()) {
+        alert("Please record or speak some content first before generating a summary.");
+        return;
+      }
+
+      const sumBtn = document.getElementById('summarizeBtn');
+      const sumEl = document.getElementById('summaryText');
+      sumBtn.disabled = true;
+      sumBtn.innerHTML = `<span>⏳</span> Generating...`;
+      sumEl.innerHTML = `<span style="color: #64748B;">Analyzing speech with Google Gemini intelligence...</span>`;
+
+      try {
+        const resp = await fetch('/api/summarize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ transcript: accumulatedText })
+        });
+
+        if (!resp.ok) {
+          throw new Error(`Server returned HTTP ${resp.status}`);
+        }
+
+        const data = await resp.json();
+        meetingSummaryText = data.summary || "No summary returned.";
+        
+        // Simple Markdown renderer
+        let formatted = meetingSummaryText
+          .replace(/### (.*?)\n/g, '<h3>$1</h3>')
+          .replace(/- \[ \] \*\*(.*?)\*\* (.*?)\n/g, '<li><strong>$1</strong>: $2</li>')
+          .replace(/- (.*?)\n/g, '<li>$1</li>')
+          .replace(/\n\n/g, '<br>');
+        
+        sumEl.innerHTML = formatted;
+      } catch (err) {
+        sumEl.innerHTML = `<span style="color: #EF4444;">Error generating summary: ${err.message}</span>`;
+      } finally {
+        sumBtn.disabled = false;
+        sumBtn.innerHTML = `<span>⚡</span> Regenerate Summary`;
+      }
+    }
+
+    // Spacebar shortcut
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        toggleRecording();
+      }
+    });
+
+    function copyTranscript() {
+      if (!accumulatedText) {
+        alert("No transcript available to copy yet. Click Record to speak!");
+        return;
+      }
+      navigator.clipboard.writeText(accumulatedText).then(() => {
+        alert("📋 Transcript copied to clipboard!");
+      }).catch(err => {
+        alert("Could not copy text: " + err);
+      });
+    }
+
+    function copySummary() {
+      if (!meetingSummaryText) {
+        alert("No summary generated yet. Click 'Generate Summary' first!");
+        return;
+      }
+      navigator.clipboard.writeText(meetingSummaryText).then(() => {
+        alert("📋 Summary copied to clipboard!");
+      }).catch(err => {
+        alert("Could not copy summary: " + err);
+      });
+    }
+
+    function saveFile(text, filename) {
+      const blob = new Blob([text], { type: 'text/markdown;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    function createWavBlob(pcmChunks, sampleRate = 16000) {
+      let totalLength = 0;
+      for (let c of pcmChunks) totalLength += c.length;
+      const pcmData = new Int16Array(totalLength);
+      let offset = 0;
+      for (let c of pcmChunks) {
+        pcmData.set(c, offset);
+        offset += c.length;
+      }
+      const byteRate = sampleRate * 2;
+      const buffer = new ArrayBuffer(44 + pcmData.byteLength);
+      const view = new DataView(buffer);
+
+      function writeStr(offset, str) {
+        for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+      }
+
+      // RIFF identifier
+      writeStr(0, 'RIFF');
+      view.setUint32(4, 36 + pcmData.byteLength, true);
+      writeStr(8, 'WAVE');
+      // fmt subchunk
+      writeStr(12, 'fmt ');
+      view.setUint32(16, 16, true);          // 16 for linear PCM
+      view.setUint16(20, 1, true);           // PCM format
+      view.setUint16(22, 1, true);           // Mono (1 channel)
+      view.setUint32(24, sampleRate, true);  // 16000 Hz
+      view.setUint32(28, byteRate, true);    // 32000 bytes/sec
+      view.setUint16(32, 2, true);           // Block align (2 bytes)
+      view.setUint16(34, 16, true);          // 16 bits per sample
+      // data subchunk
+      writeStr(36, 'data');
+      view.setUint32(40, pcmData.byteLength, true);
+      // Copy samples
+      new Int16Array(buffer, 44).set(pcmData);
+
+      return new Blob([buffer], { type: 'audio/wav' });
+    }
+
+    function downloadAudioWav() {
+      if (!latestWavBlob || latestWavBlob.size === 0) {
+        alert("No audio recording available yet. Click Record to speak first!");
+        return;
+      }
+      const now = new Date();
+      const timestamp = now.toISOString().slice(0, 19).replace(/T/, '_').replace(/:/g, '-');
+      saveBlob(latestWavBlob, `${timestamp}_SoMeet_Voice_Recording.wav`);
+    }
+
+    function saveBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    async function downloadWordSummary() {
+      if (!meetingSummaryText.trim()) {
+        alert("No summary generated yet. Click 'Generate Summary' first!");
+        return;
+      }
+      const now = new Date();
+      const timestamp = now.toISOString().slice(0, 19).replace(/T/, '_').replace(/:/g, '-');
+      try {
+        const resp = await fetch('/api/export/docx', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: "SoMeet Meeting Intelligence & Summary",
+            date_str: now.toLocaleString(),
+            speaker: document.getElementById('authBtn').innerText,
+            summary_markdown: meetingSummaryText,
+            filename: `${timestamp}_SoMeet_Summary.docx`
+          })
+        });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const blob = await resp.blob();
+        saveBlob(blob, `${timestamp}_SoMeet_Summary.docx`);
+      } catch (err) {
+        alert("Word export error: " + err.message);
+      }
+    }
+
+    async function downloadWordTranscript() {
+      if (!accumulatedText.trim()) {
+        alert("No transcript available to export yet. Record some speech first!");
+        return;
+      }
+      const now = new Date();
+      const timestamp = now.toISOString().slice(0, 19).replace(/T/, '_').replace(/:/g, '-');
+      try {
+        const resp = await fetch('/api/export/docx', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: "SoMeet Speech Transcript",
+            date_str: now.toLocaleString(),
+            speaker: document.getElementById('authBtn').innerText,
+            transcript_text: accumulatedText,
+            filename: `${timestamp}_SoMeet_Transcript.docx`
+          })
+        });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const blob = await resp.blob();
+        saveBlob(blob, `${timestamp}_SoMeet_Transcript.docx`);
+      } catch (err) {
+        alert("Word export error: " + err.message);
+      }
+    }
+
+    function exportToPdf(title, htmlContent) {
+      const printWindow = window.open('', '_blank', 'width=850,height=950');
+      if (!printWindow) {
+        alert("Pop-up blocked. Please allow pop-ups for this site to export PDF.");
+        return;
+      }
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>${title}</title>
+          <style>
+            @page { margin: 18mm 20mm; size: auto; }
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+              color: #1E293B;
+              line-height: 1.65;
+              padding: 24px;
+              max-width: 800px;
+              margin: 0 auto;
+            }
+            .header-bar {
+              border-bottom: 2px solid #5B9BD5;
+              padding-bottom: 14px;
+              margin-bottom: 24px;
+            }
+            .brand {
+              font-size: 11px;
+              font-weight: 700;
+              letter-spacing: 0.5px;
+              color: #5B9BD5;
+              text-transform: uppercase;
+              margin-bottom: 4px;
+            }
+            .title {
+              font-size: 24px;
+              font-weight: 800;
+              color: #0F172A;
+              margin-bottom: 6px;
+            }
+            .meta {
+              font-size: 13px;
+              color: #64748B;
+            }
+            h3 {
+              font-size: 15px;
+              font-weight: 700;
+              color: #1E293B;
+              margin-top: 20px;
+              margin-bottom: 8px;
+              border-bottom: 1px solid #E2E8F0;
+              padding-bottom: 4px;
+            }
+            ul {
+              margin-left: 22px;
+              margin-bottom: 14px;
+            }
+            li {
+              margin-bottom: 6px;
+              font-size: 14px;
+            }
+            p {
+              font-size: 14.5px;
+              margin-bottom: 12px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header-bar">
+            <div class="brand">SoMeet • Executive Intelligence</div>
+            <div class="title">${title}</div>
+            <div class="meta">Date: ${new Date().toLocaleString()} &nbsp;|&nbsp; Speaker: ${document.getElementById('authBtn').innerText}</div>
+          </div>
+          <div class="content">
+            ${htmlContent}
+          </div>
+          <script>
+            window.onload = function() {
+              setTimeout(function() {
+                window.print();
+              }, 250);
+            };
+          <\/script>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+    }
+
+    function downloadPdfSummary() {
+      if (!meetingSummaryText.trim()) {
+        alert("No summary generated yet. Click 'Generate Summary' first!");
+        return;
+      }
+      const summaryEl = document.getElementById('summaryText');
+      exportToPdf("AI Meeting Intelligence & Summary", summaryEl.innerHTML);
+    }
+
+    function downloadPdfTranscript() {
+      if (!accumulatedText.trim()) {
+        alert("No transcript available to export yet. Record some speech first!");
+        return;
+      }
+      const formatted = `<p>${accumulatedText.replace(/\n\n/g, '</p><p>')}</p>`;
+      exportToPdf("Verbatim Speech Transcript", formatted);
+    }
+
+    function downloadMarkdown() {
+      downloadTranscript();
+    }
+
+    function startNewSession() {
+      if (isRecording) {
+        alert("Recording is currently active. Please click 'Stop' before starting a new session.");
+        return;
+      }
+
+      const hasContent = (accumulatedText && accumulatedText.trim()) || (meetingSummaryText && meetingSummaryText.trim());
+      if (hasContent) {
+        const proceed = confirm("Start a new session?\n\nThis will clear the current live captions and summary. (Make sure you have copied or downloaded your Word file if needed!)");
+        if (!proceed) return;
+      }
+
+      // 1. Reset timers
+      clearInterval(timerInterval);
+      elapsedSeconds = 0;
+      updateTimerDisplay();
+
+      // 2. Reset text buffers
+      accumulatedText = "";
+      liveStreamingText = "";
+      meetingSummaryText = "";
+
+      // 3. Reset Live Caption UI
+      const transcriptEl = document.getElementById('transcriptText');
+      if (transcriptEl) {
+        transcriptEl.innerHTML = '<span class="placeholder-text">Transcribed speech will appear here continuously in real time as you speak...</span>';
+      }
+
+      // 4. Reset Summary UI
+      const summaryEl = document.getElementById('summaryText');
+      if (summaryEl) {
+        summaryEl.innerHTML = '<span class="placeholder-text">Click "Generate Summary" after speaking to extract Key Points, Decisions, and Action Items.</span>';
+      }
+      const sumBtn = document.getElementById('summarizeBtn');
+      if (sumBtn) {
+        sumBtn.disabled = false;
+        sumBtn.innerHTML = '<span>⚡</span> Generate Summary';
+      }
+
+      // 5. Reset Audio Recording & Player
+      allPcmChunks = [];
+      recordedChunks = [];
+      latestWavBlob = null;
+      const audioPlayer = document.getElementById('audioPlayer');
+      if (audioPlayer) {
+        audioPlayer.src = "";
+      }
+      const dlBtn = document.getElementById('audioDownloadBarBtn');
+      if (dlBtn) {
+        dlBtn.style.background = '';
+        dlBtn.style.borderColor = '';
+        dlBtn.style.color = '';
+      }
+
+      // 6. Reset Record Button UI
+      const btn = document.getElementById('recordBtn');
+      const btnText = document.getElementById('btnText');
+      if (btn) btn.classList.remove('recording');
+      if (btnText) btnText.innerText = "Record";
+    }
+
+    function handleAuth() {
+      const email = prompt("Enter your email to claim Founder Status:", "founder@someet.ai");
+      if (email) {
+        document.getElementById('authBtn').innerText = email;
+        document.getElementById('userBadge').innerHTML = "<span>⭐️ Grandfathered Founder</span>";
+        alert("🎉 Welcome! You have locked in Founder Privileges for life with generous daily allowances.");
+      }
+    }
+  </script>
+</body>
+</html>
