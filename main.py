@@ -50,6 +50,19 @@ async def get_index():
     return FileResponse(STATIC_DIR / "index.html")
 
 
+@app.get("/api/config")
+async def get_public_config():
+    """Returns safe public client configuration for Firebase Authentication."""
+    from config import FIREBASE_PROJECT_ID, FIREBASE_WEB_API_KEY
+    return {
+        "firebase": {
+            "apiKey": FIREBASE_WEB_API_KEY,
+            "authDomain": f"{FIREBASE_PROJECT_ID}.firebaseapp.com",
+            "projectId": FIREBASE_PROJECT_ID
+        }
+    }
+
+
 @app.get("/api/user/me")
 async def get_user_profile(user: dict = Depends(get_current_user)):
     """Returns the authenticated user details and their perks tier."""
