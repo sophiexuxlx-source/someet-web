@@ -19,8 +19,9 @@ def get_whisper_model():
     global _whisper_model
     if _whisper_model is None:
         from faster_whisper import WhisperModel
-        print("[ASR Engine] Loading Faster-Whisper Small (int8) into memory...")
-        _whisper_model = WhisperModel("small", device="cpu", compute_type="int8")
+        print("[ASR Engine] Loading Faster-Whisper Tiny (int8) into memory...")
+        # Free cloud instances have 512MB RAM, tiny takes ~150MB and runs instantly
+        _whisper_model = WhisperModel("tiny", device="cpu", compute_type="int8")
         print("[ASR Engine] Faster-Whisper model ready for real-time streaming.")
     return _whisper_model
 
