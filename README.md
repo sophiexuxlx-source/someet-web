@@ -12,6 +12,5 @@
 ## ✨ Features
 - **🎙️ Sub-Second Live Captions**: Real-time streaming speech-to-text directly in the browser.
 - **⚡ Automatic Post-Meeting Intelligence**: Google Gemini multimodal pass for verbatim accuracy and structured executive meeting summaries (Key Points, Decisions, Action Items).
-- **📄 Instant Export**: One-click download of verbatim transcripts and structured minutes to Microsoft Word (`.docx`) and PDF.
+- **📄 Instant Export**: One-click download of verbatim transcripts and structured minutes to Microsoft Word (`.docx`).
 - **🎵 Audio Studio**: Full session audio recording playback and instant WAV download.
-- **⭐️ Founder Tier**: Early bird claim system with grandfathered lifetime daily allowances.
