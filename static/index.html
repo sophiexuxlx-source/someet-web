@@ -584,7 +584,7 @@
       <button class="modal-close-btn" onclick="closeAuthModal()">✕</button>
       <div class="auth-card-icon">🎙️</div>
       <h3>Sign in to SoMeet</h3>
-      <p>Sign in with your Google account to unlock live speech captioning, AI meeting intelligence, and claim your Founder perks.</p>
+      <p>Sign in with your Google account to unlock live speech captioning, AI speech intelligence, and claim your Founder perks.</p>
       
       <button class="btn-google" onclick="signInWithGoogle()">
         <svg viewBox="0 0 24 24">
@@ -597,7 +597,7 @@
       </button>
 
       <div class="auth-perks-box">
-        <strong>⭐️ Early Bird Founder Perks:</strong>
+        <strong>⭐️ Early Bird Founder Perks (Ends Oct 19, 2026):</strong>
         <ul>
           <li>Generous Daily Speech & Intelligence Allowance (60 mins/day)</li>
           <li>Google Gemini Speech Intelligence: Key Points & Action Items</li>
@@ -1116,7 +1116,7 @@
 
     // AI Meeting Summarization
     async function generateSummary() {
-      if (!checkAuthOrGate("generate meeting summary")) {
+      if (!checkAuthOrGate("generate speech summary")) {
         return;
       }
       if (!accumulatedText.trim()) {
@@ -1276,7 +1276,7 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            title: "SoMeet Meeting Intelligence & Summary",
+            title: "SoMeet Speech Intelligence & Summary",
             date_str: now.toLocaleString(),
             speaker: document.getElementById('authBtn').innerText,
             summary_markdown: meetingSummaryText,
@@ -1414,7 +1414,7 @@
         return;
       }
       const summaryEl = document.getElementById('summaryText');
-      exportToPdf("AI Meeting Intelligence & Summary", summaryEl.innerHTML);
+      exportToPdf("AI Speech Intelligence & Summary", summaryEl.innerHTML);
     }
 
     function downloadPdfTranscript() {
