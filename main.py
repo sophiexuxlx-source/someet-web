@@ -44,7 +44,7 @@ async def startup_warmup():
         print(f"[Startup] Prewarm failed: {e}")
 
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 async def get_index():
     """Serves the main SoMeet web interface."""
     return FileResponse(STATIC_DIR / "index.html")
