@@ -577,13 +577,13 @@
       <button class="btn-action btn-new-session" id="newSessionHeaderBtn" onclick="startNewSession()" title="Start a fresh recording session" style="padding: 6px 16px !important; font-size: 12.5px !important; border-radius: 16px !important;">
         <span>✨</span> New Session
       </button>
-      <div class="perks-badge" id="userBadge">
-        <span>🎁 Founder Tier</span>
+      <div class="perks-badge" id="userBadge" style="background: #E2E8F0; color: #334155; border: 1px solid #CBD5E1;">
+        <span>🔒 Private Beta</span>
       </div>
       <button class="btn-action btn-privacy" onclick="openPrivacyModal()" title="View Privacy note">
         <span>🔒</span> Privacy
       </button>
-      <button class="btn-login" id="authBtn" onclick="handleAuth()">Sign In / Register</button>
+      <button class="btn-login" id="authBtn" onclick="handleAuth()">Sign In (Testers Only)</button>
     </div>
   </header>
 
@@ -666,9 +666,9 @@
   <div class="modal-overlay" id="authModal">
     <div class="auth-card">
       <button class="modal-close-btn" onclick="closeAuthModal()">✕</button>
-      <div class="auth-card-icon">🎙️</div>
-      <h3>Sign in to SoMeet</h3>
-      <p>Sign in with your Google account to unlock live speech captioning, AI speech intelligence, and claim your Founder perks.</p>
+      <div class="auth-card-icon">🔒</div>
+      <h3>Private Beta Testing</h3>
+      <p>Registration is currently closed while our initial testing phase is underway. Once testing is completed, SoMeet will officially open for public subscription at a very reasonable, affordable fee.</p>
       
       <button class="btn-google" onclick="signInWithGoogle()">
         <svg viewBox="0 0 24 24">
@@ -677,15 +677,15 @@
           <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
           <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
         </svg>
-        Continue with Google
+        Sign In (Authorized Testers Only)
       </button>
 
       <div class="auth-perks-box">
-        <strong>⭐️ Early Bird Founder Perks (Ends Oct 6, 2026):</strong>
+        <strong>🔒 Private Beta Status:</strong>
         <ul>
-          <li>Lifetime free within the 60 mins/day limit (subject to Gemini backend policies) — no credit card required</li>
-          <li>Google Gemini Speech Intelligence: Key Points & Action Items</li>
-          <li>Export formatted Word (.docx) & Audio WAV</li>
+          <li>New user registrations are currently paused for testing.</li>
+          <li>Authorized testers and founders can sign in to test.</li>
+          <li>Public launch with affordable subscription plans coming soon!</li>
         </ul>
       </div>
 
@@ -757,6 +757,13 @@
     let liveStreamingText = "";
     let speechRecognizer = null;
 
+    // Authorized testers whitelist (Registration closed to public)
+    const AUTHORIZED_TESTERS = [
+      "sophiexuxlx@gmail.com",
+      "xusophiexiaoxiao@gmail.com",
+      "architect_test@supermind.ai"
+    ];
+
     // Initialize Firebase Auth
     let authInitialized = false;
     async function initFirebaseAuth() {
@@ -768,6 +775,16 @@
           firebase.initializeApp(config.firebase);
           firebase.auth().onAuthStateChanged(async (user) => {
             if (user) {
+              const email = (user.email || "").toLowerCase();
+              const isAllowed = AUTHORIZED_TESTERS.some(e => e.toLowerCase() === email) || email.endsWith("@supermind.ai");
+              if (!isAllowed) {
+                alert("🔒 Registration is currently closed.\n\nSoMeet is currently restricted to private testing participants. Public subscription will open soon once testing is complete!");
+                await firebase.auth().signOut();
+                currentUser = null;
+                firebaseIdToken = null;
+                resetAuthUI();
+                return;
+              }
               currentUser = user;
               firebaseIdToken = await user.getIdToken();
               updateAuthUI(user);
@@ -795,7 +812,10 @@
         authBtn.onclick = handleSignOut;
       }
       if (userBadge) {
-        userBadge.innerHTML = '<span>⭐️ Founder Unlocked</span>';
+        userBadge.innerHTML = '<span>⭐️ Tester Active</span>';
+        userBadge.style.background = '#E6F4EA';
+        userBadge.style.color = '#137333';
+        userBadge.style.borderColor = '#A8DAB5';
       }
     }
 
@@ -803,12 +823,15 @@
       const authBtn = document.getElementById('authBtn');
       const userBadge = document.getElementById('userBadge');
       if (authBtn) {
-        authBtn.innerText = "Sign In / Register";
-        authBtn.title = "Sign in with Google";
+        authBtn.innerText = "Sign In (Testers Only)";
+        authBtn.title = "Sign in (Authorized Testers Only)";
         authBtn.onclick = openAuthModal;
       }
       if (userBadge) {
-        userBadge.innerHTML = '<span>🎁 Founder Tier</span>';
+        userBadge.innerHTML = '<span>🔒 Private Beta</span>';
+        userBadge.style.background = '#E2E8F0';
+        userBadge.style.color = '#334155';
+        userBadge.style.borderColor = '#CBD5E1';
       }
     }
 
