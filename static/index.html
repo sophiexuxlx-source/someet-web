@@ -947,24 +947,19 @@
               console.log("[WS Message]", data);
               if (data.type === 'transcript_delta' && data.text) {
                 receivedWsTranscript = true;
-                if (!speechRecognizer) {
-                  liveStreamingText = data.text;
-                  renderTranscript(data.text);
-                }
+                liveStreamingText = data.text;
+                renderTranscript(data.text);
               } else if (data.type === 'transcript_completed' && data.text) {
                 receivedWsTranscript = true;
-                if (!speechRecognizer) {
-                  commitTranscript(data.text);
-                }
+                commitTranscript(data.text);
               } else if (data.type === 'turn_completed') {
-                if (data.text && !speechRecognizer) {
+                if (data.text) {
                   receivedWsTranscript = true;
                   commitTranscript(data.text);
-                } else if (liveStreamingText && !speechRecognizer) {
+                } else if (liveStreamingText) {
                   receivedWsTranscript = true;
                   commitTranscript(liveStreamingText);
                 }
-                finishCleanup();
               }
             } catch (err) {
               console.error("[WS Parse Error]", err);
@@ -1009,24 +1004,7 @@
           sourceNode.connect(processorNode);
           processorNode.connect(audioContext.destination);
 
-          // 4. Parallel MediaRecorder safety backup
-          recordedChunks = [];
-          try {
-            mediaRecorder = new MediaRecorder(mediaStream);
-            mediaRecorder.ondataavailable = (e) => {
-              if (e.data.size > 0) recordedChunks.push(e.data);
-            };
-            mediaRecorder.onstop = () => {
-              const mime = mediaRecorder.mimeType || 'audio/webm';
-              const audioBlob = new Blob(recordedChunks, { type: mime });
-              refineWithGemini(audioBlob);
-            };
-            mediaRecorder.start(1000);
-          } catch(e) {
-            console.warn("[MediaRecorder] Fallback recorder not available:", e);
-          }
-
-          // 5. Native Browser Real-Time Speech Recognition (Antigravity-style word-by-word streaming)
+          // 4. Native Browser Speech Recognition for instant interim word feedback
           const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
           if (SpeechRecognitionClass) {
             try {
@@ -1045,7 +1023,7 @@
                     interim += part;
                   }
                 }
-                if (interim.trim()) {
+                if (interim.trim() && !receivedWsTranscript) {
                   renderInterimTranscript(interim.trim());
                 }
               };
@@ -1056,7 +1034,11 @@
 
               speechRecognizer.onend = () => {
                 if (isRecording && speechRecognizer) {
-                  try { speechRecognizer.start(); } catch(e) {}
+                  setTimeout(() => {
+                    if (isRecording && speechRecognizer) {
+                      try { speechRecognizer.start(); } catch(e) {}
+                    }
+                  }, 150);
                 }
               };
 
@@ -1099,24 +1081,15 @@
 
         if (speechRecognizer) {
           try { speechRecognizer.stop(); } catch(e) {}
+          speechRecognizer = null;
         }
 
         const transcriptEl = document.getElementById('transcriptText');
         const currentDisplay = (accumulatedText ? accumulatedText + " " : "") + (liveStreamingText || "");
         if (currentDisplay.trim()) {
-          transcriptEl.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${currentDisplay.trim()}</span> <span style="color: #5B9BD5; font-size: 13px;">(✨ Refining with Gemini AI...)</span>`;
+          transcriptEl.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${currentDisplay.trim()}</span> <span style="color: #5B9BD5; font-size: 13px;">(✨ Finalizing full transcript with AI...)</span>`;
         } else {
-          transcriptEl.innerHTML = `<span style="color: #5B9BD5;">✨ Transcribing with Google Gemini AI...</span>`;
-        }
-
-        // Stop media recorder -> triggers onstop -> refineWithGemini()
-        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-          mediaRecorder.stop();
-        } else if (allPcmChunks.length > 0) {
-          const wavBlob = createWavBlob(allPcmChunks, 16000);
-          refineWithGemini(wavBlob);
-        } else {
-          finishCleanup();
+          transcriptEl.innerHTML = `<span style="color: #5B9BD5;">✨ Transcribing with AI...</span>`;
         }
 
         // Close realtime WS stream
@@ -1124,12 +1097,32 @@
           ws.send(JSON.stringify({ type: 'stop' }));
         }
 
-        // Safety timeout
+        // Generate pristine uncompressed 16kHz WAV from all recorded PCM samples
+        if (allPcmChunks.length > 0) {
+          const wavBlob = createWavBlob(allPcmChunks, 16000);
+          latestWavBlob = wavBlob;
+          const audioPlayer = document.getElementById('audioPlayer');
+          const dlBtn = document.getElementById('audioDownloadBarBtn');
+          if (audioPlayer) {
+            audioPlayer.src = URL.createObjectURL(latestWavBlob);
+            audioPlayer.load();
+          }
+          if (dlBtn) {
+            dlBtn.style.background = '#EBF4FC';
+            dlBtn.style.borderColor = '#9CC3E5';
+            dlBtn.style.color = '#2B6CB0';
+          }
+          refineWithGemini(wavBlob);
+        } else {
+          finishCleanup();
+        }
+
+        // Safety timeout (45 seconds for long audio sessions)
         setTimeout(() => {
           if (isFinalizing) {
             finishCleanup();
           }
-        }, 12000);
+        }, 45000);
       }
     }
 
@@ -1145,21 +1138,25 @@
         reader.onloadend = async () => {
           try {
             const base64Audio = reader.result.split(',')[1];
-            const mimeType = audioBlob.type || 'audio/webm';
+            const mimeType = audioBlob.type || 'audio/wav';
+            const headers = { 'Content-Type': 'application/json' };
+            if (firebaseIdToken) {
+              headers['Authorization'] = `Bearer ${firebaseIdToken}`;
+            }
+
             const resp = await fetch('/api/transcribe', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: headers,
               body: JSON.stringify({
                 audio_base64: base64Audio,
-                mime_type: mimeType,
-                context: accumulatedText
+                mime_type: mimeType
               })
             });
 
             if (resp.ok) {
               const data = await resp.json();
               if (data.transcript && data.transcript.trim()) {
-                console.log("[Gemini AI] High-precision transcript:", data.transcript);
+                console.log("[AI Transcribe] Full-fidelity transcript:", data.transcript);
                 accumulatedText = data.transcript.trim();
                 liveStreamingText = "";
                 const el = document.getElementById('transcriptText');
@@ -1168,7 +1165,7 @@
               }
             }
           } catch (err) {
-            console.error("Gemini transcribe error:", err);
+            console.error("Transcribe error:", err);
           } finally {
             finishCleanup();
           }
@@ -1205,22 +1202,6 @@
         mediaStream = null;
       }
 
-      // Generate standard uncompressed WAV audio file from recorded PCM samples
-      if (allPcmChunks.length > 0) {
-        latestWavBlob = createWavBlob(allPcmChunks, 16000);
-        const audioPlayer = document.getElementById('audioPlayer');
-        const dlBtn = document.getElementById('audioDownloadBarBtn');
-        if (audioPlayer) {
-          audioPlayer.src = URL.createObjectURL(latestWavBlob);
-          audioPlayer.load();
-        }
-        if (dlBtn) {
-          dlBtn.style.background = '#EBF4FC';
-          dlBtn.style.borderColor = '#9CC3E5';
-          dlBtn.style.color = '#2B6CB0';
-        }
-      }
-
       if (speechRecognizer) {
         try { speechRecognizer.stop(); } catch(e) {}
         speechRecognizer = null;
@@ -1249,10 +1230,14 @@
       el.scrollTop = el.scrollHeight;
     }
 
-    function renderTranscript(currentDelta) {
-      liveStreamingText = currentDelta;
+    function renderTranscript(currentText) {
+      if (!currentText || !currentText.trim()) return;
+      liveStreamingText = currentText.trim();
       const el = document.getElementById('transcriptText');
-      const displayText = accumulatedText ? `${accumulatedText} ${currentDelta}` : currentDelta;
+      let displayText = currentText.trim();
+      if (accumulatedText && !displayText.includes(accumulatedText) && !accumulatedText.includes(displayText)) {
+        displayText = `${accumulatedText} ${displayText}`;
+      }
       el.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${displayText}</span>`;
       el.scrollTop = el.scrollHeight;
     }
@@ -1260,12 +1245,12 @@
     function commitTranscript(completedText) {
       if (!completedText || !completedText.trim()) return;
       completedText = completedText.trim();
-      if (accumulatedText) {
-        if (!accumulatedText.endsWith(completedText)) {
-          accumulatedText += " " + completedText;
-        }
-      } else {
+      if (!accumulatedText) {
         accumulatedText = completedText;
+      } else if (completedText.length > accumulatedText.length && completedText.includes(accumulatedText)) {
+        accumulatedText = completedText;
+      } else if (!accumulatedText.includes(completedText)) {
+        accumulatedText += " " + completedText;
       }
       liveStreamingText = "";
       const el = document.getElementById('transcriptText');

@@ -44,8 +44,10 @@ def transcribe_pcm(pcm_bytes: bytes, language: Optional[str] = None) -> str:
             audio_float32,
             beam_size=1,
             language=language,
+            condition_on_previous_text=False,
             vad_filter=True,
-            vad_parameters=dict(min_silence_duration_ms=400)
+            vad_parameters=dict(min_silence_duration_ms=1000, speech_pad_ms=400, threshold=0.35),
+            temperature=0.0
         )
         texts = [seg.text.strip() for seg in segments if seg.text.strip()]
         if not texts:
@@ -54,7 +56,9 @@ def transcribe_pcm(pcm_bytes: bytes, language: Optional[str] = None) -> str:
                 audio_float32,
                 beam_size=1,
                 language=language,
-                vad_filter=False
+                condition_on_previous_text=False,
+                vad_filter=False,
+                temperature=0.0
             )
             texts = [seg.text.strip() for seg in segments if seg.text.strip()]
         return " ".join(texts)
@@ -63,29 +67,24 @@ def transcribe_pcm(pcm_bytes: bytes, language: Optional[str] = None) -> str:
         return ""
 
 
-def transcribe_audio_base64(b64_audio: str, mime_type: str = "audio/webm", context: str = "") -> str:
+def transcribe_audio_base64(b64_audio: str, mime_type: str = "audio/wav", context: str = "") -> str:
     """
     Fallback: Transcribes audio payload using Google Gemini Multimodal API.
     """
     if not GEMINI_API_KEY:
         return ""
 
-    models_to_try = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite"]
-    
-    context_block = ""
-    if context.strip():
-        context_block = f"Recent context for conversational flow:\n\"\"\"{context.strip()}\"\"\"\n\n"
+    models_to_try = ["gemini-3.8-flash", "gemini-flash-lite-latest", "gemini-3.1-flash-lite"]
 
     prompt = (
-        "You are an expert speech-to-text recognition and reasoning engine. "
-        "Listen to this audio recording and transcribe the spoken words verbatim.\n\n"
-        f"{context_block}"
+        "You are an expert speech-to-text recognition engine. "
+        "Listen to the audio recording and transcribe all spoken words verbatim from start to finish.\n\n"
         "Rules:\n"
-        "1. Accurately transcribe what is spoken verbatim.\n"
-        "2. Do NOT summarize or invent words.\n"
-        "3. Output as a clean, continuous narrative without line breaks.\n"
+        "1. Accurately transcribe everything spoken across all sentences without dropping or truncating any parts.\n"
+        "2. Preserve natural speech flow and all sentences.\n"
+        "3. Do NOT summarize or invent words.\n"
         "4. If silence or noise, return an empty string.\n"
-        "5. Output ONLY the raw transcript."
+        "5. Output ONLY the raw transcript text."
     )
 
     payload = {
@@ -103,13 +102,14 @@ def transcribe_audio_base64(b64_audio: str, mime_type: str = "audio/webm", conte
     for model in models_to_try:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={GEMINI_API_KEY}"
         try:
-            resp = requests.post(url, json=payload, timeout=12)
+            resp = requests.post(url, json=payload, timeout=35)
             if resp.status_code == 200:
                 text = resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
                 return text.strip('"\'')
             elif resp.status_code in (429, 503):
                 continue
-        except Exception:
+        except Exception as e:
+            print(f"[Gemini Transcribe Error with {model}]: {e}")
             continue
 
     return ""

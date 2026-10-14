@@ -143,9 +143,9 @@ async def realtime_ws_endpoint(websocket: WebSocket):
                             final_text = await asyncio.to_thread(transcribe_pcm, bytes(pcm_buffer))
                             print(f"[WS Stop] Final transcribed text: '{final_text}'")
 
-                        if not final_text and last_transcribed_text:
+                        if len(final_text) < len(last_transcribed_text):
                             final_text = last_transcribed_text
-                            print(f"[WS Stop] Fallback to last_transcribed_text: '{final_text}'")
+                            print(f"[WS Stop] Using last_transcribed_text (longer): '{final_text}'")
 
                         if final_text:
                             await websocket.send_json({
@@ -228,16 +228,32 @@ async def transcribe_endpoint(
 ):
     """
     Protected REST Speech-to-Text endpoint fallback. Requires valid Firebase ID Token.
+    Dual-engine: Gemini Multimodal primary + Faster-Whisper local acoustic fallback.
     """
     if not req.audio_base64:
         raise HTTPException(status_code=400, detail="Missing audio payload")
 
+    import base64
+
+    # 1. Primary: Gemini Multimodal STT
     transcript = await asyncio.to_thread(
         transcribe_audio_base64,
         b64_audio=req.audio_base64,
         mime_type=req.mime_type,
         context=req.context
     )
+
+    # 2. Resilient Fallback: Local Faster-Whisper if Gemini returned empty
+    if not transcript:
+        try:
+            raw_bytes = base64.b64decode(req.audio_base64)
+            data_idx = raw_bytes.find(b"data")
+            pcm_data = raw_bytes[data_idx + 8:] if data_idx != -1 else raw_bytes[44:]
+            if len(pcm_data) >= 3200:
+                print(f"[Transcribe Fallback] Falling back to local Faster-Whisper ({len(pcm_data)} bytes)...")
+                transcript = await asyncio.to_thread(transcribe_pcm, pcm_data)
+        except Exception as e:
+            print(f"[Transcribe Fallback Error] {e}")
 
     return {
         "success": True,
