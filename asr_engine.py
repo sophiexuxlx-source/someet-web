@@ -45,6 +45,9 @@ def transcribe_pcm(pcm_bytes: bytes, language: Optional[str] = None) -> str:
             beam_size=1,
             language=language,
             condition_on_previous_text=False,
+            repetition_penalty=1.2,
+            no_repeat_ngram_size=3,
+            hallucination_silence_threshold=1.5,
             vad_filter=True,
             vad_parameters=dict(min_silence_duration_ms=1000, speech_pad_ms=400, threshold=0.35),
             temperature=0.0
@@ -57,6 +60,9 @@ def transcribe_pcm(pcm_bytes: bytes, language: Optional[str] = None) -> str:
                 beam_size=1,
                 language=language,
                 condition_on_previous_text=False,
+                repetition_penalty=1.2,
+                no_repeat_ngram_size=3,
+                hallucination_silence_threshold=1.5,
                 vad_filter=False,
                 temperature=0.0
             )
