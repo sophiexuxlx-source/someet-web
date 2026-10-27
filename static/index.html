@@ -322,7 +322,7 @@
       cursor: text;
       transition: all 0.15s ease;
     }
-    .transcript-body:hover:not(:focus) {
+    .transcript-body:hover:not(:focus):not([contenteditable="false"]) {
       border-color: #E2E8F0;
       background-color: #FAFCFE;
     }
@@ -330,6 +330,10 @@
       border-color: #5B9BD5;
       background-color: #FFFFFF;
       box-shadow: 0 0 0 2.5px rgba(91, 155, 213, 0.2);
+    }
+    .transcript-body[contenteditable="false"],
+    .summary-content[contenteditable="false"] {
+      cursor: default;
     }
     .placeholder-text {
       color: #94A3B8;
@@ -348,7 +352,7 @@
       cursor: text;
       transition: all 0.15s ease;
     }
-    .summary-content:hover:not(:focus) {
+    .summary-content:hover:not(:focus):not([contenteditable="false"]) {
       border-color: #E2E8F0;
       background-color: #FAFCFE;
     }
@@ -625,7 +629,7 @@
     <div class="studio-card">
       <div class="card-header-row">
         <div class="card-header-title">
-          <span>🎙</span> Live Caption <span style="font-size: 11px; color: #94A3B8; font-weight: 500; text-transform: none; margin-left: 8px;">(✏️ Click text to edit)</span>
+          <span>🎙</span> Live Caption <span style="font-size: 11px; color: #94A3B8; font-weight: 500; text-transform: none; margin-left: 8px;">(✏️ Click text to edit after processing)</span>
         </div>
         <div class="action-btn-group">
           <button class="btn-action" onclick="copyTranscript()" title="Copy transcript to clipboard">
@@ -636,8 +640,8 @@
           </button>
         </div>
       </div>
-      <div class="transcript-body" id="transcriptText" contenteditable="true" spellcheck="true" title="Click anywhere to edit or type text directly">
-        <span class="placeholder-text">Transcribed speech will appear here continuously in real time as you speak... (Click text to edit anytime)</span>
+      <div class="transcript-body" id="transcriptText" contenteditable="true" spellcheck="true" title="Click text to edit after processing">
+        <span class="placeholder-text">Transcribed speech will appear here continuously in real time as you speak... (Click text to edit after processing)</span>
       </div>
 
       <!-- Integrated Audio Play & Download Bar in the middle -->
@@ -657,7 +661,7 @@
     <div class="studio-card" id="summaryCard">
       <div class="card-header-row">
         <div class="card-header-title">
-          <span>✨</span> AI Speech Intelligence & Summary <span style="font-size: 11px; color: #94A3B8; font-weight: 500; text-transform: none; margin-left: 8px;">(✏️ Click text to edit)</span>
+          <span>✨</span> AI Speech Intelligence & Summary <span style="font-size: 11px; color: #94A3B8; font-weight: 500; text-transform: none; margin-left: 8px;">(✏️ Click text to edit after processing)</span>
         </div>
         <div class="action-btn-group">
           <button class="btn-action btn-summary" id="summarizeBtn" onclick="generateSummary()">
@@ -671,7 +675,7 @@
           </button>
         </div>
       </div>
-      <div class="summary-content" id="summaryText" contenteditable="true" spellcheck="true" title="Click anywhere to edit summary directly">
+      <div class="summary-content" id="summaryText" contenteditable="true" spellcheck="true" title="Click text to edit after processing">
         <span class="placeholder-text">Click "Generate Summary" after speaking to extract Key Points, Decisions, and Action Items.</span>
       </div>
     </div>
@@ -1120,6 +1124,9 @@
           btnText.innerText = "Stop";
 
           const transcriptEl = document.getElementById('transcriptText');
+          if (transcriptEl) {
+            transcriptEl.setAttribute('contenteditable', 'false');
+          }
           if (!accumulatedText) {
             transcriptEl.innerHTML = `<span style="color: #64748B;">🎙 Listening and streaming speech...</span>`;
           }
@@ -1321,6 +1328,9 @@
       liveStreamingText = "";
 
       const el = document.getElementById('transcriptText');
+      if (el) {
+        el.setAttribute('contenteditable', 'true');
+      }
       if (accumulatedText && accumulatedText.trim()) {
         el.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${accumulatedText.trim()}</span>`;
         el.scrollTop = el.scrollHeight;
@@ -1369,6 +1379,7 @@
       sumBtn.disabled = true;
       sumBtn.innerHTML = `<span>⏳</span> Generating...`;
       sumEl.innerHTML = `<span style="color: #64748B;">Analyzing speech...</span>`;
+      sumEl.setAttribute('contenteditable', 'false');
 
       try {
         const resp = await fetch('/api/summarize', {
@@ -1397,6 +1408,7 @@
       } finally {
         sumBtn.disabled = false;
         sumBtn.innerHTML = `<span>⚡</span> Regenerate Summary`;
+        sumEl.setAttribute('contenteditable', 'true');
       }
     }
 
@@ -1697,12 +1709,14 @@
       // 3. Reset Live Caption UI
       const transcriptEl = document.getElementById('transcriptText');
       if (transcriptEl) {
-        transcriptEl.innerHTML = '<span class="placeholder-text">Transcribed speech will appear here continuously in real time as you speak...</span>';
+        transcriptEl.setAttribute('contenteditable', 'true');
+        transcriptEl.innerHTML = '<span class="placeholder-text">Transcribed speech will appear here continuously in real time as you speak... (Click text to edit after processing)</span>';
       }
 
       // 4. Reset Summary UI
       const summaryEl = document.getElementById('summaryText');
       if (summaryEl) {
+        summaryEl.setAttribute('contenteditable', 'true');
         summaryEl.innerHTML = '<span class="placeholder-text">Click "Generate Summary" after speaking to extract Key Points, Decisions, and Action Items.</span>';
       }
       const sumBtn = document.getElementById('summarizeBtn');
