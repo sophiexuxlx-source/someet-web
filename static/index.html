@@ -80,41 +80,6 @@
       align-items: center;
       gap: 6px;
     }
-    .btn-privacy {
-      background: linear-gradient(135deg, #C00000 0%, #8B0000 100%) !important;
-      color: #FFFFFF !important;
-      border: none !important;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-      padding: 6px 15px !important;
-      font-size: 12.5px !important;
-      font-weight: 700 !important;
-      border-radius: 16px !important;
-      box-shadow: 0 2px 8px rgba(192, 0, 0, 0.3) !important;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s ease;
-    }
-    .btn-privacy:hover {
-      background: linear-gradient(135deg, #A00000 0%, #700000 100%) !important;
-      box-shadow: 0 4px 12px rgba(192, 0, 0, 0.45) !important;
-      transform: translateY(-1px);
-    }
-    .btn-login {
-      background: var(--text);
-      color: white;
-      border: none;
-      padding: 8px 18px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity 0.15s;
-    }
-    .btn-login:hover {
-      opacity: 0.9;
-    }
 
     /* Early Bird Banner */
     .banner-container {
@@ -607,10 +572,10 @@
       <div class="logo-title">SoMeet</div>
     </div>
     <div class="auth-bar">
-      <button class="btn-action btn-privacy" onclick="openPrivacyModal()" title="View Privacy note">
+      <button class="btn-action" onclick="openPrivacyModal()" title="View Privacy note">
         <span>🔒</span> Privacy
       </button>
-      <button class="btn-login" id="authBtn" onclick="handleAuth()">Sign In (Testers Only)</button>
+      <button class="btn-action" id="authBtn" onclick="handleAuth()">Sign In (Testers Only)</button>
     </div>
   </header>
 
