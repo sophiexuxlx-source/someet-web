@@ -1158,6 +1158,12 @@ class PcmWorkletProcessor extends AudioWorkletProcessor {
     this.bufferSize = 2048;
     this.buffer = new Float32Array(this.bufferSize);
     this.bytesWritten = 0;
+    this.port.onmessage = (e) => {
+      if (e.data === 'flush' && this.bytesWritten > 0) {
+        this.port.postMessage(new Float32Array(this.buffer.subarray(0, this.bytesWritten)));
+        this.bytesWritten = 0;
+      }
+    };
   }
   process(inputs) {
     const input = inputs[0];
@@ -2027,10 +2033,18 @@ registerProcessor('pcm-worklet-processor', PcmWorkletProcessor);
         btn.classList.add('processing');
         btn.title = "Processing speech...";
         const mascotHint = document.getElementById('mascotHint');
-        if (mascotHint) mascotHint.innerText = "Analyzing speech...";
+        if (mascotHint) mascotHint.innerText = "Transcribing pristine audio with Gemini...";
         if (btnText) btnText.innerText = "Processing...";
         if (micIndicator) micIndicator.style.display = 'none';
         if (micLevel) micLevel.style.width = '0%';
+
+        // 1. Flush any audio frames buffered inside AudioWorklet
+        if (workletNode && workletNode.port) {
+          try { workletNode.port.postMessage('flush'); } catch(e) {}
+        }
+
+        // 2. Grace period (350ms): allow trailing hardware PCM frames and Web Speech final chunks to settle
+        await new Promise(r => setTimeout(r, 350));
 
         if (speechRecognizer) {
           try { speechRecognizer.stop(); } catch(e) {}
@@ -2094,12 +2108,12 @@ registerProcessor('pcm-worklet-processor', PcmWorkletProcessor);
           finishCleanup();
         }
 
-        // Safety timeout
+        // Safety timeout (45 seconds for long audio recordings)
         setTimeout(() => {
           if (isFinalizing) {
             finishCleanup();
           }
-        }, 15000);
+        }, 45000);
       }
     }
 
@@ -2122,7 +2136,7 @@ registerProcessor('pcm-worklet-processor', PcmWorkletProcessor);
            .trim();
 
       // 1. Acronyms, symbols & brand
-      t = t.replace(/\bso\s*meet\b/gi, 'SoMeet')
+      t = t.replace(/\bso\s*(?:meet|mete)\b/gi, 'SoMeet')
            .replace(/\band\s+or\b/gi, 'and/or')
            .replace(/\b(\d+\+?\s*)year\b(?!\s*s)/gi, '$1years')
            .replace(/\b(cpa|cfa|mba|pmp|ca|acca|cma)\b/gi, (m) => m.toUpperCase());

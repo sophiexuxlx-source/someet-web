@@ -36,7 +36,7 @@ def format_smart_typography(text: str) -> str:
     t = re.sub(r'(^|[.!?]\s+)([a-z])', lambda m: m.group(1) + m.group(2).upper(), t.strip())
 
     # 1. Brand, symbols & common phrases
-    t = re.sub(r'\bso\s*meet\b', 'SoMeet', t, flags=re.I)
+    t = re.sub(r'\bso\s*(?:meet|mete)\b', 'SoMeet', t, flags=re.I)
     t = re.sub(r'\band\s+or\b', 'and/or', t, flags=re.I)
     t = re.sub(r'(\d+\+?\s*)year\b(?!\s*s)', r'\g<1>years', t, flags=re.I)
     t = re.sub(r'\b(cpa|cfa|mba|pmp|ca|acca|cma)\b', lambda m: m.group(0).upper(), t, flags=re.I)
@@ -164,7 +164,12 @@ def transcribe_audio_base64(b64_audio: str, mime_type: str = "audio/wav", contex
     if not GEMINI_API_KEY:
         return ""
 
-    models_to_try = ["gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-3.5-transcribe"]
+    models_to_try = [
+        "gemini-3.5-flash-lite",
+        "gemini-flash-lite-latest",
+        "gemini-flash-latest",
+        "gemini-3.8-flash"
+    ]
 
     context_note = f"\nTranscription Context / Priority Terminology:\n{context.strip()}\n" if context and context.strip() else ""
     prompt = (
@@ -250,7 +255,7 @@ def polish_speech_transcript(raw_text: str, context_prompt: str = "", terms: str
         "5. Output ONLY the clean, polished transcript text without any introductory commentary or quotes."
     )
 
-    models_to_try = ["gemini-3.5-flash-lite", "gemini-3.5-flash"]
+    models_to_try = ["gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-flash-latest"]
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {"temperature": 0.0}
@@ -311,7 +316,7 @@ def summarize_meeting(transcript: str, context_prompt: str = "") -> str:
         "Do not refer to the interaction as a 'meeting', 'session', or 'call'. Present all information directly and authoritatively."
     )
 
-    models_to_try = ["gemini-3.5-flash-lite", "gemini-3.5-flash"]
+    models_to_try = ["gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-flash-latest"]
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {"temperature": 0.2}
