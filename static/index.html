@@ -1958,23 +1958,21 @@
         }
 
         // Antigravity-Grade Dual Pipeline:
-        // 1. Immediately display live Web Speech caption as preliminary transcript
+        // 1. Immediately display live Web Speech caption as preliminary transcript with smart typography
         // 2. Refine with Gemini 3.5 Transcribe from the pristine recorded WAV audio for 100% Antigravity accuracy
+        const cleanPreview = formatSmartTypography(rawText);
         if (latestWavBlob && allPcmChunks.length > 0) {
-          if (transcriptEl && rawText) {
-            transcriptEl.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${rawText}</span> <span style="color: #A58E8A; font-size: 13px;">(Gemini audio refinement...)</span>`;
+          if (transcriptEl && cleanPreview) {
+            transcriptEl.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${cleanPreview}</span> <span style="color: #A58E8A; font-size: 13px;">(Gemini audio refinement...)</span>`;
           } else if (transcriptEl) {
             transcriptEl.innerHTML = `<span style="color: #A58E8A;">Transcribing audio with Gemini...</span>`;
           }
-          refineWithGemini(latestWavBlob, rawText);
-        } else if (rawText) {
-          const cleanVerbatim = rawText
-            .replace(/\bso\s*meet\b/gi, 'SoMeet')
-            .replace(/\bcpa\b/gi, 'CPA');
-          accumulatedText = cleanVerbatim;
-          googleSpeechFinalText = cleanVerbatim;
+          refineWithGemini(latestWavBlob, cleanPreview);
+        } else if (cleanPreview) {
+          accumulatedText = cleanPreview;
+          googleSpeechFinalText = cleanPreview;
           if (transcriptEl) {
-            transcriptEl.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${cleanVerbatim}</span>`;
+            transcriptEl.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${cleanPreview}</span>`;
             transcriptEl.setAttribute('contenteditable', 'true');
           }
           finishCleanup();
@@ -1989,6 +1987,61 @@
           }
         }, 15000);
       }
+    }
+
+    // Antigravity-Grade Smart Typography Formatter:
+    // 1. Auto-formats section headers with colons ('Industry Experience: ', 'Professional Experience: ')
+    // 2. Auto-wraps credentials in parentheses ('Professional designation (CPA, CFA, MBA)')
+    // 3. Standardizes symbols and abbreviations ('and/or', '3+ years', 'CPA')
+    function formatSmartTypography(text) {
+      if (!text) return "";
+      let t = text;
+
+      // 1. Acronyms, symbols & brand
+      t = t.replace(/\bso\s*meet\b/gi, 'SoMeet')
+           .replace(/\band\s+or\b/gi, 'and/or')
+           .replace(/\b(\d+\+?\s*)year\b(?!\s*s)/gi, '$1years')
+           .replace(/\b(cpa|cfa|mba|pmp|ca|acca|cma)\b/gi, (m) => m.toUpperCase());
+
+      // 2. Credentials grouping: wrap in parentheses following designation/credential/certifications keywords
+      t = t.replace(
+        /\b(professional\s+designations?|credentials?|certifications?)[,\s:]+\b(CPA(?:,\s*(?:CFA|MBA|PMP|CA|ACCA|CMA|JD|MD|PhD|MS|BS|BA|\b[A-Z]{2,4}\b))+)/gi,
+        (match, prefix, creds) => {
+          const capPrefix = prefix.charAt(0).toUpperCase() + prefix.slice(1).toLowerCase();
+          return `${capPrefix} (${creds})`;
+        }
+      );
+
+      // 3. Section Headers: auto-format "Header, Next word" into "Header: Next word"
+      const headers = [
+        'Industry Experience',
+        'Professional Experiences?',
+        'Education (?:and|&) Credentials',
+        'Key Responsibilities',
+        'Qualifications',
+        'Requirements',
+        'Responsibilities',
+        'Core Competencies',
+        'What (?:it|It) Does',
+        'Zero-friction Recording',
+        'Executive Summary',
+        'Action Items',
+        'Next Steps',
+        'The Exchange',
+        'Work Experience',
+        'Summary',
+        'Overview'
+      ];
+      const headerRegex = new RegExp(`(^|[.!?]\\s+)(${headers.join('|')})(?:,\\s*|\\s*[-–—:]\\s*)([a-z0-9])`, 'gi');
+      t = t.replace(headerRegex, (m, prefix, hName, nextChar) => {
+        const titleCased = hName.split(/\\s+/).map(w => {
+          const lw = w.toLowerCase();
+          return (lw === 'and' || lw === '&') ? lw : (w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+        }).join(' ');
+        return `${prefix}${titleCased}: ${nextChar.toUpperCase()}`;
+      });
+
+      return t;
     }
 
     async function polishWithGemini(rawText) {
@@ -2062,7 +2115,7 @@
               const data = await resp.json();
               if (data.transcript && data.transcript.trim()) {
                 console.log("[Gemini 3.5 Transcribe] Pristine transcript:", data.transcript);
-                accumulatedText = data.transcript.trim();
+                accumulatedText = formatSmartTypography(data.transcript.trim());
                 googleSpeechFinalText = accumulatedText;
                 liveStreamingText = "";
                 const el = document.getElementById('transcriptText');
@@ -2071,19 +2124,19 @@
                   el.scrollTop = el.scrollHeight;
                 }
               } else if (fallbackText) {
-                accumulatedText = fallbackText;
+                accumulatedText = formatSmartTypography(fallbackText);
                 const el = document.getElementById('transcriptText');
                 if (el) el.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${accumulatedText}</span>`;
               }
             } else if (fallbackText) {
-              accumulatedText = fallbackText;
+              accumulatedText = formatSmartTypography(fallbackText);
               const el = document.getElementById('transcriptText');
               if (el) el.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${accumulatedText}</span>`;
             }
           } catch (err) {
             console.error("Transcribe error:", err);
             if (fallbackText) {
-              accumulatedText = fallbackText;
+              accumulatedText = formatSmartTypography(fallbackText);
               const el = document.getElementById('transcriptText');
               if (el) el.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${accumulatedText}</span>`;
             }
@@ -2094,7 +2147,7 @@
       } catch (err) {
         console.error("FileReader error:", err);
         if (fallbackText) {
-          accumulatedText = fallbackText;
+          accumulatedText = formatSmartTypography(fallbackText);
           const el = document.getElementById('transcriptText');
           if (el) el.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${accumulatedText}</span>`;
         }

@@ -7,11 +7,69 @@ Provides:
 import numpy as np
 import requests
 import json
+import re
 from pathlib import Path
 from typing import Optional
 from config import GEMINI_API_KEY
 
 _whisper_model = None
+
+
+def format_smart_typography(text: str) -> str:
+    """
+    Antigravity-grade smart typography:
+    - Auto-formats section headers with colons ('Industry Experience: ', 'Professional Experience: ')
+    - Auto-wraps credentials in parentheses ('(CPA, CFA, MBA)')
+    - Standardizes abbreviations and symbols ('and/or', '3+ years', 'CPA')
+    """
+    if not text:
+        return ""
+    t = text
+
+    # 1. Brand, symbols & common phrases
+    t = re.sub(r'\bso\s*meet\b', 'SoMeet', t, flags=re.I)
+    t = re.sub(r'\band\s+or\b', 'and/or', t, flags=re.I)
+    t = re.sub(r'(\d+\+?\s*)year\b(?!\s*s)', r'\g<1>years', t, flags=re.I)
+    t = re.sub(r'\b(cpa|cfa|mba|pmp|ca|acca|cma)\b', lambda m: m.group(0).upper(), t, flags=re.I)
+
+    # 2. Wrap credential series in parentheses following designation/credential/certifications keywords
+    t = re.sub(
+        r'\b(professional\s+designations?|credentials?|certifications?)[,\s:]+\b(CPA(?:,\s*(?:CFA|MBA|PMP|CA|ACCA|CMA|JD|MD|PhD|MS|BS|BA|\b[A-Z]{2,4}\b))+)',
+        lambda m: f"{m.group(1).capitalize()} ({m.group(2)})",
+        t,
+        flags=re.I
+    )
+
+    # 3. Section header detection & colon formatting
+    headers = [
+        r'Industry Experience',
+        r'Professional Experience[s]?',
+        r'Education (?:and|&) Credentials',
+        r'Key Responsibilities',
+        r'Qualifications',
+        r'Requirements',
+        r'Responsibilities',
+        r'Core Competencies',
+        r'What [iI]t Does',
+        r'Zero-friction Recording',
+        r'Executive Summary',
+        r'Action Items',
+        r'Next Steps',
+        r'The Exchange',
+        r'Work Experience',
+        r'Summary',
+        r'Overview'
+    ]
+    pattern = r'(^|[.!?]\s+)(' + '|'.join(headers) + r')(?:,\s*|\s*[-–—:]\s*)([a-z0-9])'
+
+    def header_repl(m):
+        prefix = m.group(1)
+        h_name = ' '.join(w.capitalize() if w.lower() not in ('and', '&') else w for w in m.group(2).split())
+        next_char = m.group(3).upper()
+        return f"{prefix}{h_name}: {next_char}"
+
+    t = re.sub(pattern, header_repl, t, flags=re.I)
+    return t
 
 
 def get_whisper_model():
@@ -116,7 +174,7 @@ def transcribe_audio_base64(b64_audio: str, mime_type: str = "audio/wav", contex
             resp = requests.post(url, json=payload, timeout=35)
             if resp.status_code == 200:
                 text = resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
-                return text.strip('"\'')
+                return format_smart_typography(text.strip('"\''))
             elif resp.status_code in (429, 503):
                 continue
         except Exception as e:
@@ -172,7 +230,7 @@ def polish_speech_transcript(raw_text: str, context_prompt: str = "", terms: str
             resp = requests.post(url, json=payload, timeout=8)
             if resp.status_code == 200:
                 text = resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
-                return text.strip('"\'')
+                return format_smart_typography(text.strip('"\''))
         except Exception as e:
             print(f"[Speech Polish Error with {model}]: {e}")
             continue
