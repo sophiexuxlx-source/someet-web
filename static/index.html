@@ -489,9 +489,9 @@
       margin-bottom: 3px;
     }
 
-    /* Privacy Modal Styling */
+    /* Privacy Modal Styling - Harmonized Almond Mochi Palette */
     .privacy-card {
-      background: #F4F8F4;
+      background: #FBF7F7;
       border-radius: 20px;
       padding: 30px 28px;
       max-width: 560px;
@@ -499,8 +499,8 @@
       max-height: 90vh;
       overflow-y: auto;
       text-align: left;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-      border: 1px solid #D1E7DD;
+      box-shadow: 0 20px 40px rgba(62, 52, 51, 0.22);
+      border: 1px solid #A58E8A;
       position: relative;
       animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
@@ -508,44 +508,49 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
     .privacy-badge {
-      color: #2E7D32;
+      color: #7A6966;
       font-size: 11px;
       font-weight: 800;
       letter-spacing: 0.8px;
       text-transform: uppercase;
+      background: #E9E1DF;
+      padding: 3px 8px;
+      border-radius: 6px;
     }
     .privacy-title {
-      font-size: 24px;
+      font-size: 26px;
       font-weight: 800;
-      color: #0F172A;
-      margin-bottom: 10px;
+      color: #3E3433;
+      margin-bottom: 6px;
+      letter-spacing: -0.3px;
     }
     .privacy-intro {
       font-size: 13.5px;
-      color: #475569;
-      line-height: 1.55;
-      margin-bottom: 18px;
+      color: #7A6966;
+      line-height: 1.5;
+      margin-bottom: 20px;
     }
     .privacy-item {
       background: #FFFFFF;
-      border: 1px solid #E2E8F0;
+      border: 1px solid #E2D6D3;
       border-radius: 12px;
-      padding: 12px 16px;
-      margin-bottom: 10px;
+      padding: 14px 18px;
+      margin-bottom: 12px;
     }
     .privacy-item h4 {
-      font-size: 13.5px;
+      font-size: 14px;
       font-weight: 700;
-      color: #0F172A;
-      margin-bottom: 4px;
+      color: #3E3433;
+      margin: 0 0 4px 0;
     }
     .privacy-item p {
       font-size: 12.5px;
-      color: #64748B;
+      color: #7A6966;
       line-height: 1.5;
+      margin: 0;
     }
 
     /* Advanced Modal Styling */
@@ -662,8 +667,6 @@
       <div class="logo-title">SoMeet</div>
     </div>
     <div class="auth-bar">
-      <button class="btn-action" onclick="openAdvancedModal()" title="Transcription Context & Audio Settings">Advanced</button>
-      <button class="btn-action" onclick="openPrivacyModal()" title="View Privacy note">Privacy</button>
       <button class="btn-action" id="authBtn" onclick="handleAuth()">Sign In</button>
     </div>
   </header>
@@ -721,9 +724,9 @@
         <span id="btnText">Record</span>
       </button>
       <div style="display: flex; gap: 16px; justify-content: center; margin-top: 14px; align-items: center;">
-        <button onclick="openAdvancedModal()" style="background: none; border: none; font-size: 13px; color: #7A6966; cursor: pointer; font-weight: 500; padding: 2px 6px; text-decoration: underline; text-underline-offset: 3px;">Advanced</button>
+        <button onclick="openAdvancedModal()" style="background: none; border: none; font-size: 13px; color: #7A6966; cursor: pointer; font-weight: 500; padding: 2px 6px; text-decoration: underline; text-underline-offset: 3px;">Speech Settings</button>
         <span style="color: #B59E9A; font-size: 12px;">•</span>
-        <button onclick="openPrivacyModal()" style="background: none; border: none; font-size: 13px; color: #7A6966; cursor: pointer; font-weight: 500; padding: 2px 6px; text-decoration: underline; text-underline-offset: 3px;">Privacy</button>
+        <button onclick="openPrivacyModal()" style="background: none; border: none; font-size: 13px; color: #7A6966; cursor: pointer; font-weight: 500; padding: 2px 6px; text-decoration: underline; text-underline-offset: 3px;">Privacy Note</button>
       </div>
     </div>
   </main>
@@ -756,7 +759,7 @@
       </div>
 
       <div style="margin-top: 16px; font-size: 12px; color: #64748B;">
-        <a href="javascript:void(0)" onclick="openPrivacyModal()" style="color: #2B6CB0; text-decoration: underline; font-weight: 500;">🔒 View our Privacy Note</a>
+        <a href="javascript:void(0)" onclick="openPrivacyModal()" style="color: #7A6966; text-decoration: underline; font-weight: 500;">🔒 View our Privacy Note</a>
       </div>
     </div>
   </div>
@@ -765,36 +768,36 @@
   <div class="modal-overlay" id="privacyModal">
     <div class="privacy-card">
       <div class="privacy-header">
-        <div class="privacy-badge">PRIVACY</div>
-        <button class="modal-close-btn" onclick="closePrivacyModal()" style="position: static; font-size: 13px; background: #E2E8F0; border-radius: 20px; padding: 4px 12px; color: #334155; font-weight: 600;">Close</button>
+        <div class="privacy-badge">DATA PRIVACY</div>
+        <button class="modal-close-btn" onclick="closePrivacyModal()" style="position: static; font-size: 13px; background: #E9E1DF; border-radius: 20px; padding: 4px 14px; color: #3E3433; font-weight: 600;">Close</button>
       </div>
-      <h2 class="privacy-title">Privacy note</h2>
+      <h2 class="privacy-title">Privacy & Data Security</h2>
       <p class="privacy-intro">
-        SoMeet has a narrow boundary: we do not store recordings or transcript text on our servers; realtime transcription is processed in memory; recent history stays in your browser.
+        SoMeet is engineered with privacy at its core: speech is processed in volatile memory, session history remains securely in your browser, and voice recordings are never stored on our servers.
       </p>
 
       <div class="privacy-item">
-        <h4>No server-side content storage</h4>
-        <p>We keep only the account access and quota records needed to run the service. We do not store recording files or transcript text on our servers.</p>
+        <h4>Zero Persistent Cloud Storage</h4>
+        <p>Your raw speech audio, voice recordings, and transcribed text are never written to server databases. Authentication accounts maintain only basic quota and access records.</p>
       </div>
 
       <div class="privacy-item">
-        <h4>Recent content stays in your browser</h4>
-        <p>Transcripts and audio playback live temporarily in this browser session. During recording, the page keeps in-memory audio for continuous playback and export.</p>
+        <h4>Private In-Browser Session</h4>
+        <p>Transcripts and audio playback live entirely within your local browser memory. Closing or refreshing the tab clears temporary session media.</p>
       </div>
 
       <div class="privacy-item">
-        <h4>The Google Gemini API handles speech intelligence</h4>
-        <p>Spoken text (never raw audio) is sent through our backend to the Google Gemini API when you click "Generate Summary". Google processes that data under its own Gemini API terms and privacy policy.</p>
+        <h4>Enterprise-Grade AI Processing via Google Gemini</h4>
+        <p>When you click "Generate Summary", only text transcripts (never raw audio files) are sent to the Google Gemini API under commercial enterprise terms, where data is not used for model training.</p>
       </div>
 
       <div class="privacy-item">
-        <h4>Microphone on-demand control</h4>
-        <p>Microphone access is strictly activated when you click Record and immediately released when recording stops. Audio is never captured in the background.</p>
+        <h4>Hardware On-Demand Control</h4>
+        <p>Microphone streaming is engaged strictly when you choose to record. You maintain transparent, absolute control over your audio hardware at all times.</p>
       </div>
 
-      <div style="margin-top: 18px; display: flex; justify-content: flex-end;">
-        <button class="btn-action" onclick="closePrivacyModal()" style="background: #2E7D32; color: white; border: none; padding: 8px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;">Got it</button>
+      <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+        <button class="btn-action" onclick="closePrivacyModal()" style="background: #A58E8A; color: #FFFFFF; border: none; padding: 8px 22px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: background 0.15s;">Understood</button>
       </div>
     </div>
   </div>
@@ -803,28 +806,28 @@
   <div class="modal-overlay" id="advancedModal">
     <div class="advanced-card">
       <div class="advanced-header">
-        <div class="advanced-badge">ADVANCED</div>
+        <div class="advanced-badge">SPEECH SETTINGS</div>
         <button class="modal-close-btn" onclick="closeAdvancedModal()" style="position: static; font-size: 13px; background: #E9E1DF; border-radius: 20px; padding: 4px 14px; color: #3E3433; font-weight: 600;">Close</button>
       </div>
-      <h2 class="advanced-title">Transcription context</h2>
+      <h2 class="advanced-title">Domain Context & Vocabulary</h2>
       <p class="advanced-intro">
-        Leave this empty for normal transcription. Add context only when names or technical terms are repeatedly misheard.
+        Provide specialized background context, industry terminology, or proper names to help the speech recognition engine transcribe with maximum precision.
       </p>
 
       <div class="advanced-field-group">
-        <label class="advanced-label" for="advContextPrompt">Context prompt</label>
-        <textarea class="advanced-textarea" id="advContextPrompt" rows="3" placeholder="e.g. This recording may mention Superlinear Academy, OpenCode, Logto, and realtime transcription." oninput="saveAdvancedSettings()"></textarea>
+        <label class="advanced-label" for="advContextPrompt">Domain & Topic Background</label>
+        <textarea class="advanced-textarea" id="advContextPrompt" rows="3" placeholder="e.g. Financial audit and management accounting review covering Q3 balance sheets, GAAP adjustments, and executive forecasts." oninput="saveAdvancedSettings()"></textarea>
       </div>
 
       <div class="advanced-field-group">
-        <label class="advanced-label" for="advTerms">Names and terms (comma-separated)</label>
-        <input class="advanced-input" type="text" id="advTerms" placeholder="e.g. VoiceFlow, Superlinear, OpenCode" oninput="saveAdvancedSettings()">
+        <label class="advanced-label" for="advTerms">Key Terminology & Proper Nouns (comma-separated)</label>
+        <input class="advanced-input" type="text" id="advTerms" placeholder="e.g. SoMeet, EBITDA, Amortization, GAAP, KPMG" oninput="saveAdvancedSettings()">
       </div>
 
       <div class="advanced-card-toggle">
         <div class="toggle-text">
-          <h4>Warm microphone</h4>
-          <p>After permission is granted, keep the local microphone pipeline ready so recording starts faster. Warm-up audio is not saved or sent to the backend.</p>
+          <h4>Instant-Ready Microphone</h4>
+          <p>Maintains local hardware access between takes so recording initiates instantaneously with zero latency. Audio is never captured or processed until you click Record.</p>
         </div>
         <input type="checkbox" id="advWarmMic" class="advanced-checkbox" checked onchange="handleWarmMicToggle()">
       </div>
