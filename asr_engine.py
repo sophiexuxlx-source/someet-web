@@ -179,19 +179,25 @@ def summarize_meeting(transcript: str) -> str:
         return "Summary unavailable: Missing Google Gemini API key."
 
     prompt = (
-        "You are an executive meeting assistant and chief of staff. "
-        "Review the following verbatim meeting transcript and generate a structured, professional meeting summary.\n\n"
+        "You are an executive intelligence assistant and chief of staff. "
+        "Review the following spoken transcript and generate a structured, professional executive brief.\n\n"
         "TRANSCRIPT:\n"
         f"\"\"\"\n{transcript.strip()}\n\"\"\"\n\n"
         "Output format (strict markdown):\n"
         "### 📌 Executive Overview\n"
-        "(A crisp 1-2 sentence executive summary of the meeting's primary objective and outcome)\n\n"
+        "(A crisp 1-2 sentence executive overview diving directly into the core subject, key findings, and outcome. "
+        "STRICT STYLE RULE: Use Subject-First phrasing. Do NOT use filler or meta labels—never start with or include "
+        "'This meeting', 'The meeting', 'This session', 'The session', 'This recording', or 'The speaker'. "
+        "State the subject and outcome directly, e.g., 'A framework for a 6-week intensive business finance curriculum was established...' "
+        "or 'Functional verification of real-time speech transcription and in-place document editing confirmed responsive text manipulation.')\n\n"
         "### 🔑 Key Discussion Points\n"
-        "- Bullet points capturing the core topics and arguments\n\n"
+        "- Bullet points capturing the core topics, points, and insights\n\n"
         "### 🎯 Decisions & Agreements\n"
-        "- Concrete decisions confirmed during the meeting\n\n"
+        "- Concrete decisions, conclusions, or takeaways confirmed\n\n"
         "### 📋 Action Items & Next Steps\n"
-        "- [ ] **[Owner/Task]** Clear, actionable task with intended outcome\n"
+        "- [ ] **[Owner/Task]** Clear, actionable task with intended outcome\n\n"
+        "CRITICAL WRITING RULE:\n"
+        "Do not refer to the interaction as a 'meeting', 'session', or 'call'. Present all information directly and authoritatively."
     )
 
     models_to_try = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite"]
