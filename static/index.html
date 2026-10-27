@@ -796,7 +796,6 @@
       <div class="logo-title">SoMeet</div>
     </div>
     <div class="auth-bar">
-      <div id="userTierBadge" class="tier-badge visitor" onclick="handleTierBadgeClick()" title="Click to Sign In and activate 1 hour of free speech recording">🎁 1 Hr Free on Sign-in</div>
       <button class="btn-action" id="authBtn" onclick="handleAuth()">Sign In</button>
     </div>
   </header>
@@ -805,7 +804,6 @@
   <main>
     <div class="timer-display" id="timer">00:00</div>
     <div class="timer-subtitle" id="timerSubtitle">Click Record to start live captioning, then begin speaking once the timer starts.</div>
-    <div class="quota-pill" id="recordingQuotaPill">🎁 <strong>1 Hour Free Speech Recording</strong> for anyone who signs in. <a onclick="openAuthModal()">Sign in with Google</a></div>
 
     <!-- Live Caption Card -->
     <div class="studio-card card-caption">
@@ -815,7 +813,7 @@
         </div>
         <div class="action-btn-group">
           <button class="btn-action" onclick="copyTranscript()" title="Copy transcript to clipboard">Copy</button>
-          <button class="btn-action" onclick="downloadWordTranscript()" title="Download as formatted Microsoft Word document (.docx)">Word (.docx)</button>
+          <button class="btn-action" onclick="downloadWordTranscript()" title="Download as formatted Microsoft Word document">Word</button>
         </div>
       </div>
       <div class="transcript-body" id="transcriptText" contenteditable="true" spellcheck="true" title="Click text to edit when done">
@@ -828,7 +826,7 @@
           <span>Audio Playback:</span>
         </div>
         <audio id="audioPlayer" controls style="flex: 1; min-width: 220px; height: 36px; border-radius: 6px;"></audio>
-        <button class="btn-action" id="audioDownloadBarBtn" onclick="downloadAudioWav()" title="Download raw speech recording as uncompressed .WAV audio file">Download Audio (.wav)</button>
+        <button class="btn-action" id="audioDownloadBarBtn" onclick="downloadAudioWav()" title="Download speech recording">Download Audio</button>
       </div>
     </div>
 
@@ -841,7 +839,7 @@
         <div class="action-btn-group">
           <button class="btn-action btn-summary" id="summarizeBtn" onclick="generateSummary()">Generate Summary</button>
           <button class="btn-action" onclick="copySummary()" title="Copy summary to clipboard">Copy</button>
-          <button class="btn-action" onclick="downloadWordSummary()" title="Download summary as formatted Microsoft Word document (.docx)">Word (.docx)</button>
+          <button class="btn-action" onclick="downloadWordSummary()" title="Download summary as formatted Microsoft Word document">Word</button>
         </div>
       </div>
       <div class="summary-content" id="summaryText" contenteditable="true" spellcheck="true" title="Click text to edit when done">
@@ -866,9 +864,8 @@
   <div class="modal-overlay" id="authModal">
     <div class="auth-card">
       <button class="modal-close-btn" onclick="closeAuthModal()">✕</button>
-      <div class="auth-card-icon">🎙️</div>
       <h3>Sign In to SoMeet</h3>
-      <p>Sign in with Google to activate your <strong>1 hour of free speech recording</strong> and AI meeting intelligence.</p>
+      <p>Sign in with Google to activate your <strong>1 hour of free speech recording</strong> and AI speech intelligence.</p>
       
       <button class="btn-google" onclick="signInWithGoogle()">
         <svg viewBox="0 0 24 24">
@@ -881,17 +878,17 @@
       </button>
 
       <div class="auth-perks-box">
-        <strong>🎁 Free Tier Includes:</strong>
+        <strong>Free Tier Includes:</strong>
         <ul>
           <li><strong>1 Hour Free Speech Recording</strong> for anyone who signs in.</li>
           <li>Sub-second live streaming acoustic transcription.</li>
-          <li>Post-meeting executive summary & Word (.docx) export.</li>
+          <li>After-speech executive summary & Word export.</li>
           <li>Strict zero-retention privacy with local memory processing.</li>
         </ul>
       </div>
 
       <div style="margin-top: 16px; font-size: 12px; color: #64748B;">
-        <a href="javascript:void(0)" onclick="openPrivacyModal()" style="color: #7A6966; text-decoration: underline; font-weight: 500;">🔒 View our Privacy Note</a>
+        <a href="javascript:void(0)" onclick="openPrivacyModal()" style="color: #7A6966; text-decoration: underline; font-weight: 500;">View our Privacy Note</a>
       </div>
     </div>
   </div>
@@ -1011,7 +1008,17 @@
         </button>
         <div id="capSubmitResult" style="display: none; margin-top: 8px; font-size: 12.5px; color: #2E7D32; font-weight: 600; text-align: center;"></div>
       </div>
+
+      <div style="margin-top: 18px; text-align: center; border-top: 1px solid #E2D6D3; padding-top: 14px;">
+        <button onclick="handleSignOut(); closeCapacityModal();" style="background: none; border: none; font-size: 13px; color: #7A6966; cursor: pointer; text-decoration: underline; font-weight: 500;">Sign Out of Account</button>
+      </div>
     </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="someetToast" style="position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #3E3433; color: #FFFFFF; padding: 10px 22px; border-radius: 24px; font-size: 13.5px; font-weight: 500; box-shadow: 0 8px 24px rgba(62,52,51,0.25); transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s; opacity: 0; z-index: 9999; pointer-events: none; display: flex; align-items: center; gap: 8px;">
+    <span id="toastIcon">✨</span>
+    <span id="toastMsg">Welcome! 1 hour of free speech recording is active.</span>
   </div>
 
 
@@ -1086,58 +1093,52 @@
       }
     }
 
+    function showToast(msg, icon = "✨") {
+      const toast = document.getElementById('someetToast');
+      const toastMsg = document.getElementById('toastMsg');
+      const toastIcon = document.getElementById('toastIcon');
+      if (toast && toastMsg) {
+        toastMsg.innerText = msg;
+        if (toastIcon) toastIcon.innerText = icon;
+        toast.style.transform = "translateX(-50%) translateY(0)";
+        toast.style.opacity = "1";
+        setTimeout(() => {
+          toast.style.transform = "translateX(-50%) translateY(-100px)";
+          toast.style.opacity = "0";
+        }, 3600);
+      }
+    }
+
     function updateTierUI() {
-      const headerBadge = document.getElementById('userTierBadge');
-      const quotaPill = document.getElementById('recordingQuotaPill');
+      const authBtn = document.getElementById('authBtn');
+      if (!authBtn) return;
 
       if (!currentUser) {
-        if (headerBadge) {
-          headerBadge.className = 'tier-badge visitor';
-          headerBadge.innerHTML = '🎁 1 Hr Free on Sign-in';
-          headerBadge.title = 'Click to Sign In and activate 1 hour of free speech recording';
-          headerBadge.onclick = openAuthModal;
-        }
-        if (quotaPill) {
-          quotaPill.innerHTML = '🎁 <strong>1 Hour Free Speech Recording</strong> for anyone who signs in. <a onclick="openAuthModal()">Sign in with Google</a>';
-        }
+        authBtn.innerText = "Sign In";
+        authBtn.title = "Sign In with Google to get 1 hour of free speech recording";
+        authBtn.onclick = openAuthModal;
         return;
       }
 
       const email = (currentUser.email || "").toLowerCase();
       const isUnlimited = userTierInfo.is_unlimited || LIFETIME_UNLIMITED_EMAILS.includes(email);
+      const name = currentUser.displayName || currentUser.email.split('@')[0];
 
       if (isUnlimited) {
-        if (headerBadge) {
-          headerBadge.className = 'tier-badge founder';
-          headerBadge.innerHTML = '👑 Lifetime Unlimited';
-          headerBadge.title = 'Founder Account with Lifetime Unlimited Recording';
-          headerBadge.onclick = openCapacityModal;
-        }
-        if (quotaPill) {
-          quotaPill.innerHTML = '👑 <strong>Founder Account</strong> • Lifetime Unlimited Recording & Intelligence';
-        }
+        authBtn.innerText = `👑 ${name}`;
+        authBtn.title = `Founder Account • Lifetime Unlimited Access (Click to view account)`;
+        authBtn.onclick = openCapacityModal;
       } else {
         const remSec = Math.max(0, userTierInfo.remaining_seconds);
         const remStr = formatMinsSecs(remSec);
-        if (headerBadge) {
-          headerBadge.className = 'tier-badge standard';
-          if (remSec <= 0) {
-            headerBadge.innerHTML = '⚠️ Free Limit Reached';
-            headerBadge.style.color = '#C53030';
-          } else {
-            headerBadge.innerHTML = `⏱️ ${remStr} remaining`;
-            headerBadge.style.color = '';
-          }
-          headerBadge.title = 'Click to view recording capacity or request upgrade';
-          headerBadge.onclick = openCapacityModal;
+        if (remSec <= 0) {
+          authBtn.innerText = `${name} (0m left)`;
+          authBtn.title = `${currentUser.email} • Free 1-hour limit reached (Click to request upgrade)`;
+        } else {
+          authBtn.innerText = name;
+          authBtn.title = `${currentUser.email} • ${remStr} remaining of 1 hour (Click to view account)`;
         }
-        if (quotaPill) {
-          if (remSec <= 0) {
-            quotaPill.innerHTML = '⚠️ <strong>Free 1-Hour Limit Reached</strong> • <a onclick="openCapacityModal()">Request More Capacity from Sophie</a>';
-          } else {
-            quotaPill.innerHTML = `⏱️ Free Quota: <strong>${remStr} remaining</strong> of 1 hour • <a onclick="openCapacityModal()">Need more?</a>`;
-          }
-        }
+        authBtn.onclick = openCapacityModal;
       }
     }
 
@@ -1178,7 +1179,7 @@
 
       if (isUnlimited) {
         if (titleEl) titleEl.innerText = "Founder Account (Unlimited)";
-        if (introEl) introEl.innerText = "You have full lifetime unlimited access to SoMeet recording and Gemini meeting intelligence.";
+        if (introEl) introEl.innerText = "You have full lifetime unlimited access to SoMeet recording and Gemini speech intelligence.";
       } else if (userTierInfo.remaining_seconds <= 0) {
         if (titleEl) titleEl.innerText = "Free 1-Hour Limit Reached";
         if (introEl) introEl.innerText = "You have used your 1 hour of free speech recording! To expand your account with more hours or unlimited team access, send a message to Sophie.";
@@ -1287,12 +1288,21 @@
           firebase.initializeApp(config.firebase);
           firebase.auth().onAuthStateChanged(async (user) => {
             if (user) {
+              const wasLoggedOut = !currentUser;
               currentUser = user;
               firebaseIdToken = await user.getIdToken();
               await fetchUserTierProfile();
-              updateAuthUI(user);
               updateTierUI();
               closeAuthModal();
+              if (wasLoggedOut) {
+                const email = (user.email || "").toLowerCase();
+                const isUnlimited = userTierInfo.is_unlimited || LIFETIME_UNLIMITED_EMAILS.includes(email);
+                if (isUnlimited) {
+                  showToast("Welcome Sophie! Lifetime Unlimited Access active.", "👑");
+                } else {
+                  showToast("Signed in! 1 hour of free speech recording activated.", "⏱️");
+                }
+              }
             } else {
               currentUser = null;
               firebaseIdToken = null;
@@ -2340,7 +2350,7 @@
 
     function handleAuth() {
       if (currentUser) {
-        handleSignOut();
+        openCapacityModal();
       } else {
         openAuthModal();
       }

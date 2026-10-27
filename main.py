@@ -18,7 +18,7 @@ from config import BASE_DIR
 
 app = FastAPI(
     title="SoMeet",
-    description="Real-Time Streaming Speech Studio with Local Acoustic Engine & Gemini Meeting Intelligence",
+    description="Real-Time Streaming Speech Studio with Local Acoustic Engine & Gemini Speech Intelligence",
     version="2.0.0"
 )
 
