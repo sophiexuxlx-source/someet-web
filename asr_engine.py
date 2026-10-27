@@ -18,6 +18,7 @@ _whisper_model = None
 def format_smart_typography(text: str) -> str:
     """
     Antigravity-grade smart typography:
+    - Filters spoken disfluencies & filler words ('uh', 'um', 'ah', 'er', 'hmm')
     - Auto-formats section headers with colons ('Industry Experience: ', 'Professional Experience: ')
     - Auto-wraps credentials in parentheses ('(CPA, CFA, MBA)')
     - Standardizes abbreviations and symbols ('and/or', '3+ years', 'CPA')
@@ -25,6 +26,14 @@ def format_smart_typography(text: str) -> str:
     if not text:
         return ""
     t = text
+
+    # 0. Strip spoken filler words / disfluencies
+    t = re.sub(r'\b(uh+|um+|ah+|er+|eh+|umm+|uhh+|hmm+|hm)\b[,;]?', '', t, flags=re.I)
+    t = re.sub(r'  +', ' ', t)
+    t = re.sub(r' ,', ',', t)
+    t = re.sub(r',\s*,', ',', t)
+    t = re.sub(r'(^|[.!?]\s*),\s*', r'\1', t)
+    t = re.sub(r'(^|[.!?]\s+)([a-z])', lambda m: m.group(1) + m.group(2).upper(), t.strip())
 
     # 1. Brand, symbols & common phrases
     t = re.sub(r'\bso\s*meet\b', 'SoMeet', t, flags=re.I)
@@ -163,11 +172,12 @@ def transcribe_audio_base64(b64_audio: str, mime_type: str = "audio/wav", contex
         "Listen to the audio recording and transcribe exactly what is spoken from the first syllable to the end.\n\n"
         f"{context_note}"
         "Strict Transcription Rules:\n"
-        "1. Verbatim Phonetic Fidelity: Transcribe every spoken word exactly as articulated without replacing, paraphrasing, or altering words (e.g. if the speaker says 'Options 1 and 2', do NOT replace with 'Overoptimism' or 'Edge cases').\n"
-        "2. Domain Capitalization: Capitalize proper nouns, sentence starts, and standard acronyms (e.g. MCT, RCM, CPA designation, General Ledger, IFRS, OSFI).\n"
-        "3. Punctuation & Paragraphs: Insert natural punctuation (commas, periods, colons). When the speaker pauses between paragraphs or major points, insert a blank line paragraph break.\n"
-        "4. No Bullet Injections: Output fluent, natural prose. Do NOT inject bullet point symbols ('•') unless explicitly spoken by the speaker.\n"
-        "5. Output ONLY the raw transcript text. Do not add markdown labels, commentary, or notes."
+        "1. Omit Spoken Fillers & Disfluencies: Filter out and completely omit spoken hesitation fillers ('uh', 'um', 'ah', 'er', 'eh', 'umm', 'uhh', 'hmm') and stuttered false starts. Output clean, fluent executive speech without filler sounds.\n"
+        "2. Verbatim Semantic Fidelity: Transcribe all substantive spoken words faithfully without replacing, paraphrasing, or altering words (e.g. if the speaker says 'Options 1 and 2', do NOT replace with 'Overoptimism' or 'Edge cases').\n"
+        "3. Domain Capitalization: Capitalize proper nouns, sentence starts, and standard acronyms (e.g. MCT, RCM, CPA designation, General Ledger, IFRS, OSFI).\n"
+        "4. Punctuation & Paragraphs: Insert natural punctuation (commas, periods, colons). When the speaker pauses between paragraphs or major points, insert a blank line paragraph break.\n"
+        "5. No Bullet Injections: Output fluent, natural prose. Do NOT inject bullet point symbols ('•') unless explicitly spoken by the speaker.\n"
+        "6. Output ONLY the raw transcript text. Do not add markdown labels, commentary, or notes."
     )
 
     payload = {
@@ -234,9 +244,10 @@ def polish_speech_transcript(raw_text: str, context_prompt: str = "", terms: str
         f"{context_guidance}\n"
         "Tasks:\n"
         "1. Restore standard punctuation (commas, periods, question marks).\n"
-        "2. Fix obvious acoustic phonetic recognition slips for technical jargon, brand names, or proper nouns using the domain context and terminology provided above.\n"
-        "3. Preserve all words and sentences verbatim—do NOT summarize, truncate, or omit content.\n"
-        "4. Output ONLY the clean, polished transcript text without any introductory commentary or quotes."
+        "2. Filter out spoken fillers and disfluencies ('uh', 'um', 'ah', 'er', 'eh', 'umm', 'uhh', 'hmm').\n"
+        "3. Fix obvious acoustic phonetic recognition slips for technical jargon, brand names, or proper nouns using the domain context and terminology provided above.\n"
+        "4. Preserve all substantive words and sentences faithfully—do NOT summarize or rewrite the message.\n"
+        "5. Output ONLY the clean, polished transcript text without any introductory commentary or quotes."
     )
 
     models_to_try = ["gemini-3.5-flash-lite", "gemini-3.5-flash"]

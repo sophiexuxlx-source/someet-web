@@ -2104,12 +2104,22 @@ registerProcessor('pcm-worklet-processor', PcmWorkletProcessor);
     }
 
     // Antigravity-Grade Smart Typography Formatter:
-    // 1. Auto-formats section headers with colons ('Industry Experience: ', 'Professional Experience: ')
-    // 2. Auto-wraps credentials in parentheses ('Professional designation (CPA, CFA, MBA)')
-    // 3. Standardizes symbols and abbreviations ('and/or', '3+ years', 'CPA')
+    // 1. Automatically filters spoken disfluencies & filler words ('uh', 'um', 'ah', 'er', 'hmm')
+    // 2. Auto-formats section headers with colons ('Industry Experience: ', 'Professional Experience: ')
+    // 3. Auto-wraps credentials in parentheses ('Professional designation (CPA, CFA, MBA)')
+    // 4. Standardizes symbols and abbreviations ('and/or', '3+ years', 'CPA')
     function formatSmartTypography(text) {
       if (!text) return "";
       let t = text;
+
+      // 0. Strip spoken filler words / disfluencies (uh, um, ah, er, etc.)
+      t = t.replace(/\b(uh+|um+|ah+|er+|eh+|umm+|uhh+|hmm+|hm)\b[,;]?/gi, '')
+           .replace(/  +/g, ' ')
+           .replace(/ ,/g, ',')
+           .replace(/,\s*,/g, ',')
+           .replace(/(^|[.!?]\s*),\s*/g, '$1')
+           .replace(/(^|[.!?]\s+)([a-z])/g, (m, p1, p2) => p1 + p2.toUpperCase())
+           .trim();
 
       // 1. Acronyms, symbols & brand
       t = t.replace(/\bso\s*meet\b/gi, 'SoMeet')
