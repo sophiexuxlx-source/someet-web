@@ -629,7 +629,7 @@
     <div class="studio-card">
       <div class="card-header-row">
         <div class="card-header-title">
-          <span>🎙</span> Live Caption <span style="font-size: 11px; color: #94A3B8; font-weight: 500; text-transform: none; margin-left: 8px;">(✏️ Click text to edit after processing)</span>
+          <span>🎙</span> Live Caption <span style="font-size: 11px; color: #94A3B8; font-weight: 500; text-transform: none; margin-left: 8px;">(✏️ Click to edit when done)</span>
         </div>
         <div class="action-btn-group">
           <button class="btn-action" onclick="copyTranscript()" title="Copy transcript to clipboard">
@@ -640,8 +640,8 @@
           </button>
         </div>
       </div>
-      <div class="transcript-body" id="transcriptText" contenteditable="true" spellcheck="true" title="Click text to edit after processing">
-        <span class="placeholder-text">Transcribed speech will appear here continuously in real time as you speak... (Click text to edit after processing)</span>
+      <div class="transcript-body" id="transcriptText" contenteditable="true" spellcheck="true" title="Click text to edit when done">
+        <span class="placeholder-text">Transcribed speech will appear here continuously in real time as you speak... (Click to edit when done)</span>
       </div>
 
       <!-- Integrated Audio Play & Download Bar in the middle -->
@@ -661,7 +661,7 @@
     <div class="studio-card" id="summaryCard">
       <div class="card-header-row">
         <div class="card-header-title">
-          <span>✨</span> AI Speech Intelligence & Summary <span style="font-size: 11px; color: #94A3B8; font-weight: 500; text-transform: none; margin-left: 8px;">(✏️ Click text to edit after processing)</span>
+          <span>✨</span> Speech Summary <span style="font-size: 11px; color: #94A3B8; font-weight: 500; text-transform: none; margin-left: 8px;">(✏️ Click to edit when done)</span>
         </div>
         <div class="action-btn-group">
           <button class="btn-action btn-summary" id="summarizeBtn" onclick="generateSummary()">
@@ -675,7 +675,7 @@
           </button>
         </div>
       </div>
-      <div class="summary-content" id="summaryText" contenteditable="true" spellcheck="true" title="Click text to edit after processing">
+      <div class="summary-content" id="summaryText" contenteditable="true" spellcheck="true" title="Click text to edit when done">
         <span class="placeholder-text">Click "Generate Summary" after speaking to extract Key Points, Decisions, and Action Items.</span>
       </div>
     </div>
@@ -1528,7 +1528,7 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            title: "SoMeet Speech Intelligence & Summary",
+            title: "SoMeet Speech Summary",
             date_str: now.toLocaleString(),
             speaker: document.getElementById('authBtn').innerText,
             summary_markdown: meetingSummaryText,
@@ -1666,7 +1666,7 @@
         return;
       }
       const summaryEl = document.getElementById('summaryText');
-      exportToPdf("AI Speech Intelligence & Summary", summaryEl.innerHTML);
+      exportToPdf("Speech Summary", summaryEl.innerHTML);
     }
 
     function downloadPdfTranscript() {
@@ -1710,7 +1710,7 @@
       const transcriptEl = document.getElementById('transcriptText');
       if (transcriptEl) {
         transcriptEl.setAttribute('contenteditable', 'true');
-        transcriptEl.innerHTML = '<span class="placeholder-text">Transcribed speech will appear here continuously in real time as you speak... (Click text to edit after processing)</span>';
+        transcriptEl.innerHTML = '<span class="placeholder-text">Transcribed speech will appear here continuously in real time as you speak... (Click to edit when done)</span>';
       }
 
       // 4. Reset Summary UI
