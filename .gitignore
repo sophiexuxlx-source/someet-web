@@ -6,3 +6,4 @@ __pycache__/
 *.docx
 test_*.py
 data/*.json
+tmp/
