@@ -743,6 +743,9 @@
     let timerInterval = null;
     let elapsedSeconds = 0;
     let accumulatedText = "";
+    let googleSpeechFinalText = "";
+    let googleSpeechInterimText = "";
+    const hasGoogleSpeech = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
     let meetingSummaryText = "";
     let ws = null;
     let audioContext = null;
@@ -945,20 +948,23 @@
             try {
               const data = JSON.parse(event.data);
               console.log("[WS Message]", data);
-              if (data.type === 'transcript_delta' && data.text) {
-                receivedWsTranscript = true;
-                liveStreamingText = data.text;
-                renderTranscript(data.text);
-              } else if (data.type === 'transcript_completed' && data.text) {
-                receivedWsTranscript = true;
-                commitTranscript(data.text);
-              } else if (data.type === 'turn_completed') {
-                if (data.text) {
+              // Only consume Whisper server deltas if Google Speech is not supported on this browser
+              if (!hasGoogleSpeech) {
+                if (data.type === 'transcript_delta' && data.text) {
+                  receivedWsTranscript = true;
+                  liveStreamingText = data.text;
+                  renderTranscript(data.text);
+                } else if (data.type === 'transcript_completed' && data.text) {
                   receivedWsTranscript = true;
                   commitTranscript(data.text);
-                } else if (liveStreamingText) {
-                  receivedWsTranscript = true;
-                  commitTranscript(liveStreamingText);
+                } else if (data.type === 'turn_completed') {
+                  if (data.text) {
+                    receivedWsTranscript = true;
+                    commitTranscript(data.text);
+                  } else if (liveStreamingText) {
+                    receivedWsTranscript = true;
+                    commitTranscript(liveStreamingText);
+                  }
                 }
               }
             } catch (err) {
@@ -1004,9 +1010,9 @@
           sourceNode.connect(processorNode);
           processorNode.connect(audioContext.destination);
 
-          // 4. Native Browser Speech Recognition for instant interim word feedback
-          const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
-          if (SpeechRecognitionClass) {
+          // 4. Primary Live Transcriber: Google Neural Speech Recognition (exact Antigravity engine)
+          if (hasGoogleSpeech) {
+            const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
             try {
               speechRecognizer = new SpeechRecognitionClass();
               speechRecognizer.continuous = true;
@@ -1014,18 +1020,33 @@
               speechRecognizer.lang = 'en-US';
 
               speechRecognizer.onresult = (event) => {
-                let preview = '';
+                let currentInterim = '';
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
-                  preview += event.results[i][0].transcript;
+                  const transcript = event.results[i][0].transcript;
+                  if (event.results[i].isFinal) {
+                    const cleanFinal = transcript.trim();
+                    if (cleanFinal) {
+                      googleSpeechFinalText = googleSpeechFinalText ? `${googleSpeechFinalText} ${cleanFinal}` : cleanFinal;
+                      accumulatedText = googleSpeechFinalText;
+                    }
+                  } else {
+                    currentInterim += transcript;
+                  }
                 }
-                // Only use browser speech as an instant typing preview if server hasn't sent a transcript yet
-                if (preview.trim() && !receivedWsTranscript) {
-                  renderInterimTranscript(preview.trim());
+                googleSpeechInterimText = currentInterim.trim();
+
+                // Direct, single-stream Google neural rendering (no dual writing)
+                const transcriptEl = document.getElementById('transcriptText');
+                if (transcriptEl) {
+                  const base = googleSpeechFinalText ? `<span style="color: #0F172A; font-weight: 500;">${googleSpeechFinalText}</span> ` : '';
+                  const interimHtml = googleSpeechInterimText ? `<span style="color: #64748B; font-style: italic;">${googleSpeechInterimText}</span>` : '';
+                  transcriptEl.innerHTML = `${base}${interimHtml}`;
+                  transcriptEl.scrollTop = transcriptEl.scrollHeight;
                 }
               };
 
               speechRecognizer.onerror = (e) => {
-                console.warn("[SpeechRecognition Error]", e);
+                console.warn("[Google Speech Error]", e);
               };
 
               speechRecognizer.onend = () => {
@@ -1034,13 +1055,13 @@
                     if (isRecording && speechRecognizer) {
                       try { speechRecognizer.start(); } catch(e) {}
                     }
-                  }, 150);
+                  }, 100);
                 }
               };
 
               speechRecognizer.start();
             } catch (err) {
-              console.warn("[SpeechRecognition Init Error]", err);
+              console.warn("[Google Speech Init Error]", err);
             }
           }
 
@@ -1080,12 +1101,19 @@
           speechRecognizer = null;
         }
 
+        // If Google Speech was used, fold any remaining interim text into the final transcript
+        if (hasGoogleSpeech) {
+          if (googleSpeechInterimText && !googleSpeechFinalText.endsWith(googleSpeechInterimText)) {
+            googleSpeechFinalText = (googleSpeechFinalText ? googleSpeechFinalText + " " : "") + googleSpeechInterimText;
+          }
+          if (googleSpeechFinalText.trim()) {
+            accumulatedText = googleSpeechFinalText.trim();
+          }
+        }
+
         const transcriptEl = document.getElementById('transcriptText');
-        const currentDisplay = liveStreamingText || accumulatedText || "";
-        if (currentDisplay.trim()) {
-          transcriptEl.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${currentDisplay.trim()}</span> <span style="color: #5B9BD5; font-size: 13px;">(✨ Finalizing full transcript with AI...)</span>`;
-        } else {
-          transcriptEl.innerHTML = `<span style="color: #5B9BD5;">✨ Transcribing with AI...</span>`;
+        if (accumulatedText && accumulatedText.trim()) {
+          transcriptEl.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${accumulatedText.trim()}</span>`;
         }
 
         // Close realtime WS stream
@@ -1108,17 +1136,25 @@
             dlBtn.style.borderColor = '#9CC3E5';
             dlBtn.style.color = '#2B6CB0';
           }
-          refineWithGemini(wavBlob);
+        }
+
+        // If Google Speech already produced clean text, complete immediately with zero lag!
+        // Only trigger server transcribe fallback if accumulatedText is empty
+        if (!accumulatedText.trim() && latestWavBlob) {
+          if (transcriptEl) {
+            transcriptEl.innerHTML = `<span style="color: #5B9BD5;">✨ Transcribing with AI...</span>`;
+          }
+          refineWithGemini(latestWavBlob);
         } else {
           finishCleanup();
         }
 
-        // Safety timeout (45 seconds for long audio sessions)
+        // Safety timeout
         setTimeout(() => {
           if (isFinalizing) {
             finishCleanup();
           }
-        }, 45000);
+        }, 15000);
       }
     }
 
@@ -1578,6 +1614,8 @@
 
       // 2. Reset text buffers
       accumulatedText = "";
+      googleSpeechFinalText = "";
+      googleSpeechInterimText = "";
       liveStreamingText = "";
       meetingSummaryText = "";
 
