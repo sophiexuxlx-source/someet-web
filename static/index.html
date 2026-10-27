@@ -944,11 +944,11 @@
   <div class="modal-overlay" id="authModal">
     <div class="auth-card">
       <div class="auth-header">
-        <div class="auth-badge">GET STARTED</div>
+        <div class="auth-badge">PRIVATE BETA</div>
         <button class="modal-close-btn" onclick="closeAuthModal()" style="position: static; font-size: 13px; background: #E9E1DF; border-radius: 20px; padding: 4px 14px; color: #3E3433; font-weight: 600; cursor: pointer; border: none;">Close</button>
       </div>
       <h2 class="auth-title">Sign In to SoMeet</h2>
-      <p class="auth-intro">Sign in with Google to activate your <strong>1 hour of free speech recording</strong> and AI speech intelligence.</p>
+      <p class="auth-intro">SoMeet is currently in private beta for 20 community testers. Each approved tester receives <strong>120 minutes of free AI speech transcription & executive summaries, valid for 90 days</strong> (whichever comes first). DM Sophie on LinkedIn to get an invite!</p>
       
       <button class="btn-google" onclick="signInWithGoogle()">
         <svg viewBox="0 0 24 24">
@@ -961,16 +961,24 @@
       </button>
 
       <div class="auth-perks-box">
-        <strong>Free Tier Includes:</strong>
+        <strong>Private Beta Includes:</strong>
         <ul>
-          <li><strong>1 Hour Free Speech Recording</strong> for anyone who signs in.</li>
+          <li><strong>120 Minutes Free Speech Recording</strong> (2 hours total).</li>
+          <li><strong>Valid for 90 Days</strong> from approval.</li>
           <li>Sub-second live streaming acoustic transcription.</li>
           <li>After-speech executive summary & Word export.</li>
           <li>Strict zero-retention privacy with local memory processing.</li>
         </ul>
       </div>
 
-      <div style="margin-top: 18px; font-size: 12.5px; text-align: center;">
+      <div style="margin-top: 14px; text-align: center;">
+        <a href="https://www.linkedin.com/in/sophie-xu-cpa/" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #0A66C2; text-decoration: none; font-weight: 600; padding: 7px 16px; background: #EBF4FB; border-radius: 20px; border: 1px solid #CFE2F3;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="#0A66C2"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+          DM Sophie on LinkedIn
+        </a>
+      </div>
+
+      <div style="margin-top: 14px; font-size: 12.5px; text-align: center;">
         <a href="javascript:void(0)" onclick="closeAuthModal(); openPrivacyModal();" style="color: #7A6966; text-decoration: underline; text-underline-offset: 3px; font-weight: 500;">View our Privacy Note</a>
       </div>
     </div>
@@ -1050,12 +1058,12 @@
   <div class="modal-overlay" id="capacityModal">
     <div class="capacity-card">
       <div class="capacity-header">
-        <div class="capacity-badge">CAPACITY & EXPANSION</div>
+        <div class="capacity-badge">PRIVATE BETA & CAPACITY</div>
         <button class="modal-close-btn" onclick="closeCapacityModal()" style="position: static; font-size: 13px; background: #E9E1DF; border-radius: 20px; padding: 4px 14px; color: #3E3433; font-weight: 600; cursor: pointer; border: none;">Close</button>
       </div>
-      <h2 class="capacity-title" id="capModalTitle">Recording Quota & Capacity</h2>
+      <h2 class="capacity-title" id="capModalTitle">Private Beta Access</h2>
       <p class="capacity-intro" id="capModalIntro">
-        SoMeet includes 1 free hour of AI speech recording for every user. Need more hours or unlimited team capacity? Send a message directly to Sophie to upgrade your account!
+        SoMeet is currently in private beta for 20 community testers. Each approved tester receives 120 minutes of free AI speech transcription & executive summaries, valid for 90 days (whichever comes first). DM Sophie on LinkedIn to get an invite!
       </p>
 
       <div class="capacity-info-box">
@@ -1065,16 +1073,20 @@
         </div>
         <div class="capacity-info-row">
           <span>Account Tier:</span>
-          <strong id="capUserTier">Standard Free Tier</strong>
+          <strong id="capUserTier">Private Beta (Invite Required)</strong>
         </div>
         <div class="capacity-info-row">
           <span>Remaining Free Time:</span>
-          <strong id="capUserRemaining" style="color: #7A6966;">60m 00s</strong>
+          <strong id="capUserRemaining" style="color: #7A6966;">120m 00s</strong>
         </div>
       </div>
 
       <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
-        <a id="capEmailLink" href="mailto:sophiexuxlx@gmail.com?subject=SoMeet%20Capacity%20Expansion%20Request" style="flex: 1; min-width: 180px; text-align: center; text-decoration: none; background: #A58E8A; color: #FFFFFF; font-weight: 600; font-size: 13.5px; padding: 11px 16px; border-radius: 10px; box-shadow: 0 2px 6px rgba(165,142,138,0.25);">
+        <a id="capLinkedInLink" href="https://www.linkedin.com/in/sophie-xu-cpa/" target="_blank" rel="noopener noreferrer" style="flex: 1; min-width: 170px; text-align: center; text-decoration: none; background: #0A66C2; color: #FFFFFF; font-weight: 600; font-size: 13.5px; padding: 11px 16px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 2px 6px rgba(10,102,194,0.25);">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+          DM Sophie on LinkedIn
+        </a>
+        <a id="capEmailLink" href="mailto:sophiexuxlx@gmail.com?subject=SoMeet%20Beta%20Invite%20Request" style="padding: 11px 16px; background: #F4EDED; border: 1px solid #A58E8A; border-radius: 10px; font-weight: 600; font-size: 13.5px; color: #3E3433; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
           ✉️ Email Sophie
         </a>
         <button onclick="copySophieEmail()" id="capCopyEmailBtn" style="padding: 11px 16px; background: #FFFFFF; border: 1px solid #A58E8A; border-radius: 10px; font-weight: 600; font-size: 13.5px; color: #7A6966; cursor: pointer;">
@@ -1084,8 +1096,8 @@
 
       <div class="capacity-message-card">
         <h4 style="margin: 0 0 6px 0; font-size: 13.5px; font-weight: 700; color: #3E3433;">Send a Direct Message to Sophie</h4>
-        <p style="margin: 0 0 10px 0; font-size: 12px; color: #7A6966;">Let Sophie know your intended usage and we'll expand your recording capacity.</p>
-        <textarea id="capMessageText" rows="3" placeholder="Hi Sophie, I'd like to request additional recording capacity for my account..." style="width: 100%; box-sizing: border-box; border: 1px solid #E2D6D3; border-radius: 8px; padding: 10px 12px; font-size: 13px; font-family: inherit; color: #3E3433; outline: none; resize: vertical;"></textarea>
+        <p style="margin: 0 0 10px 0; font-size: 12px; color: #7A6966;">Request beta access or provide actionable feedback for additional free hours.</p>
+        <textarea id="capMessageText" rows="3" placeholder="Hi Sophie, I'd like to request beta access or send some feedback..." style="width: 100%; box-sizing: border-box; border: 1px solid #E2D6D3; border-radius: 8px; padding: 10px 12px; font-size: 13px; font-family: inherit; color: #3E3433; outline: none; resize: vertical;"></textarea>
         <button onclick="submitCapacityMessage()" id="capSubmitBtn" style="margin-top: 10px; width: 100%; background: #7A6966; color: #FFFFFF; border: none; border-radius: 8px; padding: 9px; font-size: 13px; font-weight: 600; cursor: pointer;">
           Send Request to Sophie
         </button>
@@ -1101,7 +1113,7 @@
   <!-- Notification Toast -->
   <div id="someetToast" style="position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #3E3433; color: #FFFFFF; padding: 10px 22px; border-radius: 24px; font-size: 13.5px; font-weight: 500; box-shadow: 0 8px 24px rgba(62,52,51,0.25); transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s; opacity: 0; z-index: 9999; pointer-events: none; display: flex; align-items: center; gap: 8px;">
     <span id="toastIcon">✨</span>
-    <span id="toastMsg">Welcome! 1 hour of free speech recording is active.</span>
+    <span id="toastMsg">Welcome! 120 minutes of beta speech recording is active.</span>
   </div>
 
 
@@ -1132,15 +1144,19 @@
     let liveStreamingText = "";
     let speechRecognizer = null;
 
-    // User Quota & Tier State (1 Hour Free for Standard Users, Unlimited for Sophie)
+    // User Quota & Tier State (120 Minutes Free for Approved Testers, Valid for 90 Days)
     let userTierInfo = {
       is_unlimited: false,
-      tier: "Standard Free Tier",
-      quota_seconds: 3600,
+      is_whitelisted: false,
+      tier: "Private Beta (Invite Required)",
+      quota_seconds: 7200,
       used_seconds: 0,
-      remaining_seconds: 3600,
+      remaining_seconds: 0,
+      days_remaining: 90,
+      is_expired: false,
       is_exhausted: false,
-      admin_contact: "sophiexuxlx@gmail.com"
+      admin_contact: "sophiexuxlx@gmail.com",
+      linkedin_url: "https://www.linkedin.com/in/sophie-xu-cpa/"
     };
 
     const LIFETIME_UNLIMITED_EMAILS = [
@@ -1198,7 +1214,7 @@
 
       if (!currentUser) {
         authBtn.innerText = "Sign In";
-        authBtn.title = "Sign In with Google to get 1 hour of free speech recording";
+        authBtn.title = "SoMeet Private Beta • Click to Sign In";
         authBtn.onclick = openAuthModal;
         return;
       }
@@ -1211,15 +1227,24 @@
         authBtn.innerText = `👑 ${name}`;
         authBtn.title = `Founder Account • Lifetime Unlimited Access (Click to view account)`;
         authBtn.onclick = openCapacityModal;
+      } else if (userTierInfo.is_whitelisted === false) {
+        authBtn.innerText = `${name} (Waitlist)`;
+        authBtn.title = `SoMeet is currently in private beta for 20 community testers. DM Sophie on LinkedIn to get an invite!`;
+        authBtn.onclick = openCapacityModal;
+      } else if (userTierInfo.is_expired) {
+        authBtn.innerText = `${name} (Expired)`;
+        authBtn.title = `Your 90-day beta testing period has ended. DM Sophie on LinkedIn to top up!`;
+        authBtn.onclick = openCapacityModal;
       } else {
-        const remSec = Math.max(0, userTierInfo.remaining_seconds);
+        const remSec = Math.max(0, userTierInfo.remaining_seconds || 0);
         const remStr = formatMinsSecs(remSec);
+        const remMins = Math.floor(remSec / 60);
         if (remSec <= 0) {
           authBtn.innerText = `${name} (0m left)`;
-          authBtn.title = `${currentUser.email} • Free 1-hour limit reached (Click to request upgrade)`;
+          authBtn.title = `${currentUser.email} • 120-minute beta limit reached (Click to request top-up)`;
         } else {
-          authBtn.innerText = name;
-          authBtn.title = `${currentUser.email} • ${remStr} remaining of 1 hour (Click to view account)`;
+          authBtn.innerText = `${name} (${remMins}m left)`;
+          authBtn.title = `${currentUser.email} • ${remStr} remaining of 120 mins (${userTierInfo.days_remaining != null ? userTierInfo.days_remaining : 90} days left)`;
         }
         authBtn.onclick = openCapacityModal;
       }
@@ -1247,33 +1272,53 @@
       const email = currentUser ? (currentUser.email || "").toLowerCase() : "";
       const isUnlimited = userTierInfo.is_unlimited || LIFETIME_UNLIMITED_EMAILS.includes(email);
 
-      if (tierEl) tierEl.innerText = isUnlimited ? "Founder (Lifetime Unlimited)" : "Standard Free Tier (1 Hour)";
-      
-      if (remEl) {
-        if (isUnlimited) {
+      if (isUnlimited) {
+        if (tierEl) tierEl.innerText = "Founder (Lifetime Unlimited)";
+        if (remEl) {
           remEl.innerText = "Unlimited (Lifetime Access)";
           remEl.style.color = "#2E7D32";
-        } else {
-          const remStr = formatMinsSecs(userTierInfo.remaining_seconds);
-          remEl.innerText = `${remStr} remaining`;
-          remEl.style.color = userTierInfo.remaining_seconds <= 0 ? "#C53030" : "#7A6966";
         }
-      }
-
-      if (isUnlimited) {
         if (titleEl) titleEl.innerText = "Founder Account (Unlimited)";
         if (introEl) introEl.innerText = "You have full lifetime unlimited access to SoMeet recording and Gemini speech intelligence.";
+      } else if (userTierInfo.is_whitelisted === false) {
+        if (tierEl) tierEl.innerText = "Private Beta (Invite Required)";
+        if (remEl) {
+          remEl.innerText = "Awaiting Invite Approval";
+          remEl.style.color = "#C53030";
+        }
+        if (titleEl) titleEl.innerText = "Private Beta Access";
+        if (introEl) introEl.innerHTML = "SoMeet is currently in private beta for 20 community testers. Each tester receives <strong>120 minutes of free AI speech transcription & executive summaries, valid for 90 days</strong> (whichever comes first). DM Sophie on LinkedIn to get an invite!";
+      } else if (userTierInfo.is_expired) {
+        if (tierEl) tierEl.innerText = "Community Beta Tester (Expired)";
+        if (remEl) {
+          remEl.innerText = "0m 00s (90 days elapsed)";
+          remEl.style.color = "#C53030";
+        }
+        if (titleEl) titleEl.innerText = "Beta Period Ended";
+        if (introEl) introEl.innerText = "Your 90-day beta testing period has ended. If you use it and send actionable feedback or bug reports, Sophie will happily top up your account with additional free hours! DM Sophie on LinkedIn to renew.";
       } else if (userTierInfo.remaining_seconds <= 0) {
-        if (titleEl) titleEl.innerText = "Free 1-Hour Limit Reached";
-        if (introEl) introEl.innerText = "You have used your 1 hour of free speech recording! To expand your account with more hours or unlimited team access, send a message to Sophie.";
+        if (tierEl) tierEl.innerText = "Community Beta Tester (20 Slots)";
+        if (remEl) {
+          remEl.innerText = "0m 00s (Limit reached)";
+          remEl.style.color = "#C53030";
+        }
+        if (titleEl) titleEl.innerText = "120-Minute Beta Limit Reached";
+        if (introEl) introEl.innerText = "You have used your 120 minutes of free speech recording! If you use it and send actionable feedback or bug reports, Sophie will happily top up your account with additional free hours! DM Sophie on LinkedIn to request more hours.";
       } else {
-        if (titleEl) titleEl.innerText = "Recording Quota & Capacity";
-        if (introEl) introEl.innerText = "SoMeet includes 1 free hour of AI speech recording for every user. Need more hours or unlimited team capacity? Send a message directly to Sophie to upgrade your account!";
+        const remStr = formatMinsSecs(userTierInfo.remaining_seconds);
+        const daysLeft = userTierInfo.days_remaining != null ? userTierInfo.days_remaining : 90;
+        if (tierEl) tierEl.innerText = "Community Beta Tester (20 Slots)";
+        if (remEl) {
+          remEl.innerText = `${remStr} remaining • ${daysLeft} days valid`;
+          remEl.style.color = "#7A6966";
+        }
+        if (titleEl) titleEl.innerText = "Community Beta Tester";
+        if (introEl) introEl.innerText = "Each tester receives 120 minutes of free AI speech transcription & executive summaries, valid for 90 days (whichever comes first). If you use it and send actionable feedback or bug reports, Sophie will happily top up your account with additional free hours!";
       }
 
       const userEmail = currentUser ? currentUser.email : "user";
       if (emailLink) {
-        emailLink.href = `mailto:sophiexuxlx@gmail.com?subject=SoMeet%20Capacity%20Expansion%20Request&body=Hi%20Sophie,%0D%0A%0D%0AI'm%20using%20SoMeet%20with%20my%20account%20(${encodeURIComponent(userEmail)}).%0D%0A%0D%0AI'd%20love%20to%20request%20additional%20recording%20capacity.%0D%0A%0D%0AThank%20you!`;
+        emailLink.href = `mailto:sophiexuxlx@gmail.com?subject=SoMeet%20Beta%20Invite%20Request&body=Hi%20Sophie,%0D%0A%0D%0AI'm%20using%20SoMeet%20with%20my%20account%20(${encodeURIComponent(userEmail)}).%0D%0A%0D%0AI'd%20love%20to%20request%20beta%20access%20or%20additional%20recording%20capacity.%0D%0A%0D%0AThank%20you!`;
       }
 
       if (modal) modal.classList.add('active');
@@ -1542,9 +1587,15 @@
       }
       const email = (currentUser.email || "").toLowerCase();
       const isUnlimited = userTierInfo.is_unlimited || LIFETIME_UNLIMITED_EMAILS.includes(email);
-      if (!isUnlimited && userTierInfo.remaining_seconds <= 0) {
-        openCapacityModal();
-        return false;
+      if (!isUnlimited) {
+        if (userTierInfo.is_whitelisted === false) {
+          openCapacityModal();
+          return false;
+        }
+        if (userTierInfo.is_expired || userTierInfo.remaining_seconds <= 0) {
+          openCapacityModal();
+          return false;
+        }
       }
       return true;
     }
