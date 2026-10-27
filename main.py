@@ -43,6 +43,14 @@ class PolishRequest(BaseModel):
     terms: str = ""
 
 
+class RecordUsageRequest(BaseModel):
+    seconds: int
+
+
+class CapacityRequestModel(BaseModel):
+    message: str = ""
+
+
 @app.on_event("startup")
 async def startup_warmup():
     """Pre-warms the local Whisper ASR model on startup so the first user interaction has zero lag."""
@@ -73,15 +81,34 @@ async def get_public_config():
 
 @app.get("/api/user/me")
 async def get_user_profile(user: dict = Depends(get_current_user)):
-    """Returns the authenticated user details and their perks tier."""
+    """Returns the authenticated user details, quota, and remaining seconds."""
+    uid = user.get("uid") or "guest"
+    email = user.get("email") or ""
+    usage_info = get_user_usage(uid, email)
     return {
         "status": "authenticated",
-        "uid": user.get("uid"),
-        "email": user.get("email"),
-        "is_early_adopter": user.get("is_early_adopter", True),
-        "tier": "Early Bird Founder (Grandfathered for Life)",
-        "perks": "Priority processing & generous daily speech allowances"
+        "uid": uid,
+        "email": email,
+        "display_name": user.get("name") or user.get("display_name") or email.split("@")[0],
+        **usage_info
     }
+
+
+@app.post("/api/user/usage")
+async def record_user_usage_endpoint(req: RecordUsageRequest, user: dict = Depends(get_current_user)):
+    """Records consumed recording seconds and returns updated quota balance."""
+    uid = user.get("uid") or "guest"
+    email = user.get("email") or ""
+    result = add_user_usage(uid, email, req.seconds)
+    return result
+
+
+@app.post("/api/user/request_capacity")
+async def request_capacity_endpoint(req: CapacityRequestModel, user: dict = Depends(get_current_user)):
+    """Stores a user's request for additional recording capacity."""
+    uid = user.get("uid") or "guest"
+    email = user.get("email") or ""
+    return save_capacity_request(uid, email, req.message)
 
 
 @app.websocket("/api/realtime/ws")
