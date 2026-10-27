@@ -1143,6 +1143,39 @@
     let liveStreamingText = "";
     let speechRecognizer = null;
 
+    // Instant zero-delay memory-cached AudioWorkletProcessor (eliminates initial speech clip)
+    const pcmWorkletCode = `
+class PcmWorkletProcessor extends AudioWorkletProcessor {
+  constructor() {
+    super();
+    this.bufferSize = 2048;
+    this.buffer = new Float32Array(this.bufferSize);
+    this.bytesWritten = 0;
+  }
+  process(inputs) {
+    const input = inputs[0];
+    if (input && input.length > 0 && input[0] && input[0].length > 0) {
+      const channel = input[0];
+      let offset = 0;
+      while (offset < channel.length) {
+        const toCopy = Math.min(channel.length - offset, this.bufferSize - this.bytesWritten);
+        this.buffer.set(channel.subarray(offset, offset + toCopy), this.bytesWritten);
+        this.bytesWritten += toCopy;
+        offset += toCopy;
+        if (this.bytesWritten >= this.bufferSize) {
+          this.port.postMessage(new Float32Array(this.buffer));
+          this.bytesWritten = 0;
+        }
+      }
+    }
+    return true;
+  }
+}
+registerProcessor('pcm-worklet-processor', PcmWorkletProcessor);
+`;
+    const pcmWorkletBlob = new Blob([pcmWorkletCode], { type: 'application/javascript' });
+    const pcmWorkletUrl = URL.createObjectURL(pcmWorkletBlob);
+
     // User Quota & Tier State (120 Minutes Free for Approved Testers, Valid for 90 Days)
     let userTierInfo = {
       is_unlimited: false,
@@ -1753,7 +1786,7 @@
           let usedAudioWorklet = false;
           if (audioContext.audioWorklet) {
             try {
-              await audioContext.audioWorklet.addModule('/static/audio_worklet_processor.js');
+              await audioContext.audioWorklet.addModule(pcmWorkletUrl);
               workletNode = new AudioWorkletNode(audioContext, 'pcm-worklet-processor');
               workletNode.port.onmessage = (event) => {
                 handleRawAudioFrame(event.data);
@@ -2002,7 +2035,18 @@
            .replace(/\b(\d+\+?\s*)year\b(?!\s*s)/gi, '$1years')
            .replace(/\b(cpa|cfa|mba|pmp|ca|acca|cma)\b/gi, (m) => m.toUpperCase());
 
-      // 2. Credentials grouping: wrap in parentheses following designation/credential/certifications keywords
+      // 2. Financial, Corporate & Regulatory Terminology & Acronyms
+      t = t.replace(/\bminimum\s+capital\s+test\s*(?:\(?or\s+MCT\)?|\(?MCT\)?|\s+MCT\b)/gi, 'Minimum Capital Test (MCT)')
+           .replace(/\bminimum\s+capital\s+test\b/gi, 'Minimum Capital Test')
+           .replace(/\bregulatory\s+compliance\s+management\s*(?:\(?or\s+RCM\)?|\(?RCM\)?|\s+RCM\b)/gi, 'Regulatory Compliance Management (RCM)')
+           .replace(/\bregulatory\s+compliance\s+management\b/gi, 'Regulatory Compliance Management')
+           .replace(/\bboard\s+and\s+audit\s+committee\b/gi, 'Board and Audit Committee')
+           .replace(/\baudit\s+committee\b/gi, 'Audit Committee')
+           .replace(/\bgeneral\s+ledger\b/gi, 'General Ledger')
+           .replace(/\b(mct|rcm|ifrs|osfi|gaap)\b/gi, (m) => m.toUpperCase())
+           .replace(/\bat\s+close\s+forecast(?:s)?\b/gi, 'actuals, forecasts');
+
+      // 3. Credentials grouping: wrap in parentheses following designation/credential/certifications keywords
       t = t.replace(
         /\b(professional\s+designations?|credentials?|certifications?)[,\s:]+\b(CPA(?:,\s*(?:CFA|MBA|PMP|CA|ACCA|CMA|JD|MD|PhD|MS|BS|BA|\b[A-Z]{2,4}\b))+)/gi,
         (match, prefix, creds) => {

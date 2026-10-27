@@ -32,6 +32,17 @@ def format_smart_typography(text: str) -> str:
     t = re.sub(r'(\d+\+?\s*)year\b(?!\s*s)', r'\g<1>years', t, flags=re.I)
     t = re.sub(r'\b(cpa|cfa|mba|pmp|ca|acca|cma)\b', lambda m: m.group(0).upper(), t, flags=re.I)
 
+    # 2. Financial, Corporate & Regulatory Terminology & Acronyms
+    t = re.sub(r'\bminimum\s+capital\s+test\s*(?:\(?or\s+MCT\)?|\(?MCT\)?|\s+MCT\b)', 'Minimum Capital Test (MCT)', t, flags=re.I)
+    t = re.sub(r'\bminimum\s+capital\s+test\b', 'Minimum Capital Test', t, flags=re.I)
+    t = re.sub(r'\bregulatory\s+compliance\s+management\s*(?:\(?or\s+RCM\)?|\(?RCM\)?|\s+RCM\b)', 'Regulatory Compliance Management (RCM)', t, flags=re.I)
+    t = re.sub(r'\bregulatory\s+compliance\s+management\b', 'Regulatory Compliance Management', t, flags=re.I)
+    t = re.sub(r'\bboard\s+and\s+audit\s+committee\b', 'Board and Audit Committee', t, flags=re.I)
+    t = re.sub(r'\baudit\s+committee\b', 'Audit Committee', t, flags=re.I)
+    t = re.sub(r'\bgeneral\s+ledger\b', 'General Ledger', t, flags=re.I)
+    t = re.sub(r'\b(mct|rcm|ifrs|osfi|gaap)\b', lambda m: m.group(0).upper(), t, flags=re.I)
+    t = re.sub(r'\bat\s+close\s+forecast(?:s)?\b', 'actuals, forecasts', t, flags=re.I)
+
     # 2. Wrap credential series in parentheses following designation/credential/certifications keywords
     t = re.sub(
         r'\b(professional\s+designations?|credentials?|certifications?)[,\s:]+\b(CPA(?:,\s*(?:CFA|MBA|PMP|CA|ACCA|CMA|JD|MD|PhD|MS|BS|BA|\b[A-Z]{2,4}\b))+)',
@@ -145,14 +156,20 @@ def transcribe_audio_base64(b64_audio: str, mime_type: str = "audio/wav", contex
 
     context_note = f"\nTranscription Context / Priority Terminology:\n{context.strip()}\n" if context and context.strip() else ""
     prompt = (
-        "You are an expert speech-to-text recognition engine.\n"
+        "You are an expert executive speech-to-text transcription engine specializing in corporate finance, accounting, and regulatory compliance.\n"
         "Listen to the audio recording and transcribe all spoken words verbatim from start to finish.\n\n"
         f"{context_note}"
-        "Rules:\n"
-        "1. Accurately transcribe everything spoken across all sentences without dropping or truncating any parts.\n"
-        "2. Preserve natural speech flow, standard punctuation, and sentence capitalization.\n"
-        "3. Do NOT summarize or invent words.\n"
-        "4. If silence or noise, return an empty string.\n"
+        "Strict Transcription Guidelines:\n"
+        "1. Full-fidelity audio transcription: transcribe every word spoken from the very first syllable without dropping opening phrases (e.g. 'Prepare and present...').\n"
+        "2. Domain terminology & capitalization:\n"
+        "   - Accurately capture standard accounting & finance triplets such as 'actuals, forecasts, and plans' (never transcribe as 'at close forecast').\n"
+        "   - Capitalize formal regulatory, board, and accounting terms: 'Minimum Capital Test (MCT)', 'Regulatory Compliance Management (RCM)', 'Board and Audit Committee', 'General Ledger', 'IFRS 17', 'OSFI', 'GAAP'.\n"
+        "   - Format acronyms following their full name in parentheses, e.g. 'Minimum Capital Test (MCT)', 'Regulatory Compliance Management (RCM)'.\n"
+        "   - Wrap professional designations in parentheses, e.g. '(CPA, CFA, MBA)'.\n"
+        "3. Punctuation & Formatting:\n"
+        "   - Insert accurate punctuation: commas, periods, colons for headers.\n"
+        "   - When distinct bullet points, action items, or responsibilities are spoken, format each on a new line starting with '• '.\n"
+        "4. Do NOT summarize, invent words, or omit sentences.\n"
         "5. Output ONLY the raw transcript text."
     )
 

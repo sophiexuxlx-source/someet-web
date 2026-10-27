@@ -355,6 +355,7 @@ async def transcribe_endpoint(
     )
 
     # 2. Resilient Fallback: Local Faster-Whisper if Gemini returned empty
+    engine_used = "Gemini Multimodal STT"
     if not transcript:
         try:
             raw_bytes = base64.b64decode(req.audio_base64)
@@ -363,8 +364,20 @@ async def transcribe_endpoint(
             if len(pcm_data) >= 3200:
                 print(f"[Transcribe Fallback] Falling back to local Faster-Whisper ({len(pcm_data)} bytes)...")
                 transcript = await asyncio.to_thread(transcribe_pcm, pcm_data)
+                engine_used = "Faster-Whisper Fallback"
         except Exception as e:
             print(f"[Transcribe Fallback Error] {e}")
+
+    try:
+        tmp_dir = BASE_DIR / "tmp"
+        tmp_dir.mkdir(exist_ok=True)
+        with open(tmp_dir / "transcribe_debug.log", "a", encoding="utf-8") as f:
+            f.write(f"\n--- TRANSCRIBE REQUEST ({len(req.audio_base64)} b64 bytes) ---\n")
+            f.write(f"ENGINE: {engine_used}\n")
+            f.write(f"CONTEXT: {req.context}\n")
+            f.write(f"RESULT: {transcript}\n")
+    except Exception as log_err:
+        print(f"[Log Error] {log_err}")
 
     return {
         "success": True,
