@@ -142,7 +142,7 @@ def polish_speech_transcript(raw_text: str, context_prompt: str = "", terms: str
         context_guidance += f"\nDomain Context:\n{context_prompt.strip()}\n"
     
     # Intrinsic product terms + user-supplied custom terms
-    base_terms = "SoMeet, AI Speech Studio, Sub-second, private beta"
+    base_terms = "SoMeet"
     effective_terms = f"{base_terms}, {terms.strip()}" if terms.strip() else base_terms
     context_guidance += f"\nPriority Terminology / Proper Nouns (ensure correct spelling and casing):\n{effective_terms}\n"
 
@@ -153,7 +153,7 @@ def polish_speech_transcript(raw_text: str, context_prompt: str = "", terms: str
         f"{context_guidance}\n"
         "Tasks:\n"
         "1. Restore standard punctuation (commas, periods, question marks).\n"
-        "2. Fix obvious acoustic phonetic recognition slips (e.g., product names like 'Show me' or 'So meet' -> 'SoMeet', 'better sports' -> 'beta spots', 'Stop sucking' -> 'Sub-second', technical jargon, brand names, or proper nouns) using the domain context and terminology provided above.\n"
+        "2. Fix obvious acoustic phonetic recognition slips for technical jargon, brand names, or proper nouns using the domain context and terminology provided above.\n"
         "3. Preserve all words and sentences verbatim—do NOT summarize, truncate, or omit content.\n"
         "4. Output ONLY the clean, polished transcript text without any introductory commentary or quotes."
     )

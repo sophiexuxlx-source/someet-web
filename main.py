@@ -313,10 +313,19 @@ async def polish_endpoint(req: PolishRequest):
     """
     Sub-second Gemini speech intelligence pass: restores punctuation, capitalization, and acoustic slips.
     """
+    tmp_dir = BASE_DIR / "tmp"
+    tmp_dir.mkdir(exist_ok=True)
+    with open(tmp_dir / "polish_debug.log", "a", encoding="utf-8") as f:
+        f.write(f"\n--- POLISH REQUEST ---\nINPUT: {req.transcript}\n")
+
     if not req.transcript.strip():
         return {"success": True, "polished_transcript": ""}
 
     polished = await asyncio.to_thread(polish_speech_transcript, req.transcript, req.context_prompt, req.terms)
+    
+    with open(tmp_dir / "polish_debug.log", "a", encoding="utf-8") as f:
+        f.write(f"OUTPUT: {polished}\n")
+
     return {
         "success": True,
         "polished_transcript": polished

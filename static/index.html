@@ -1656,8 +1656,9 @@
             mediaStream = await navigator.mediaDevices.getUserMedia({
               audio: {
                 channelCount: 1,
-                echoCancellation: true,
-                noiseSuppression: true
+                echoCancellation: false,
+                noiseSuppression: false,
+                autoGainControl: false
               }
             });
             if (isWarmMicEnabled) {
@@ -1956,12 +1957,20 @@
           }
         }
 
-        // Sub-second Gemini Smart Polish: delivers Antigravity-grade punctuation and phonetic accuracy
+        // Direct Verbatim Antigravity Engine:
+        // Google Neural Web Speech API produces pristine punctuation, casing, and word accuracy.
+        // Keep transcript 100% faithful and verbatim with zero LLM alterations or hallucinations.
         if (rawText) {
+          const cleanVerbatim = rawText
+            .replace(/\bso\s*meet\b/gi, 'SoMeet')
+            .replace(/\bcpa\b/gi, 'CPA');
+          accumulatedText = cleanVerbatim;
+          googleSpeechFinalText = cleanVerbatim;
           if (transcriptEl) {
-            transcriptEl.innerHTML = `<span style="color: #3E3433; font-weight: 500;">${rawText}</span> <span style="color: #A58E8A; font-size: 13px;">(Polishing...)</span>`;
+            transcriptEl.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${cleanVerbatim}</span>`;
+            transcriptEl.setAttribute('contenteditable', 'true');
           }
-          polishWithGemini(rawText);
+          finishCleanup();
         } else if (latestWavBlob) {
           if (transcriptEl) {
             transcriptEl.innerHTML = `<span style="color: #A58E8A;">Transcribing...</span>`;
