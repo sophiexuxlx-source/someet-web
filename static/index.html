@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SoMeet - AI Speech Studio</title>
+  <link rel="icon" type="image/jpeg" href="/static/mascot_avatar.jpg" />
   <!-- Firebase JS SDK (v10 modular CDN) -->
   <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
@@ -46,17 +47,13 @@
       gap: 10px;
     }
     .logo-icon {
-      width: 28px;
-      height: 28px;
-      background: linear-gradient(135deg, #B59E9A, #8E7571);
+      width: 32px;
+      height: 32px;
       border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 14px;
-      font-weight: bold;
-      box-shadow: 0 2px 6px rgba(165, 142, 138, 0.3);
+      object-fit: cover;
+      box-shadow: 0 2px 6px rgba(165, 142, 138, 0.25);
+      border: 1px solid #D8CECC;
+      display: block;
     }
     .logo-title {
       font-size: 18px;
@@ -875,7 +872,7 @@
   <!-- Header -->
   <header>
     <div class="logo-container">
-      <div class="logo-icon">SM</div>
+      <img src="/static/mascot_avatar.jpg" alt="SoMeet Mascot" class="logo-icon" />
       <div class="logo-title">SoMeet</div>
     </div>
     <div class="auth-bar">
