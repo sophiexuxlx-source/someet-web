@@ -13,6 +13,7 @@ from pydantic import BaseModel
 from pathlib import Path
 from auth import get_current_user
 from asr_engine import transcribe_audio_base64, transcribe_pcm, summarize_meeting, get_whisper_model, polish_speech_transcript
+from usage_service import get_user_usage, add_user_usage, save_capacity_request
 from config import BASE_DIR
 
 app = FastAPI(
