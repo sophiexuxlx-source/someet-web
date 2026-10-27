@@ -314,7 +314,7 @@
         </div>
         <div class="client-chips">
           <div class="chip">
-            <strong>Microphone Ingestion</strong> AudioContext → 16kHz PCM16 Downsampling (ScriptProcessorNode)
+            <strong>Microphone Ingestion</strong> AudioContext → 16kHz PCM16 Downsampling (AudioWorklet · Off-Main-Thread)
           </div>
           <div class="chip">
             <strong>Local Export</strong> RIFF/WAV packaging in-browser · Word (.docx) via /api/export/docx
@@ -339,7 +339,7 @@
           <div class="service-desc">Bi-directional streaming protocol handling high-throughput PCM16 audio chunks.</div>
           <ul class="bullet-list">
             <li>Endpoint: <code>/api/realtime/ws</code></li>
-            <li>In-memory PCM bytearray buffer</li>
+            <li>Incremental sliding-window PCM buffer</li>
             <li>Zero server audio persistence</li>
           </ul>
         </div>

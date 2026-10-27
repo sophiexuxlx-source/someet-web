@@ -89,7 +89,7 @@
 │                        LAYER 1: CLIENT RUNTIME                              │
 │       Modern Web Audio SPA (Vanilla JS · HTML5 AudioContext · WSS)          │
 │                                                                             │
-│ • Ingestion: AudioContext → 16kHz PCM16 Downsampling (ScriptProcessorNode)  │
+│ • Ingestion: AudioContext → 16kHz PCM16 Downsampling (AudioWorklet Thread) │
 │ • Local Export: RIFF/WAV in-browser · Word (.docx) via /api/export/docx     │
 │ • Companion UI: Mascot avatar record button & Almond Mochi responsive theme │
 └──────────────────────────────────────┬──────────────────────────────────────┘
@@ -101,7 +101,7 @@
 ├──────────────────────────────┬──────────────────────────────┬───────────────┤
 │    WebSocket Live Stream     │     Executive Summary API    │ Identity &    │
 │     (/api/realtime/ws)       │      (/api/summarize)        │ Quota Engine  │
-│  In-memory PCM bytearray     │  Text-only transcript input  │ 120-min quota │
+│  Incremental sliding-window  │  Text-only transcript input  │ 120-min quota │
 │  Zero server audio storage   │  Zero server audio storage   │ Whitelist mode│
 └──────────────┬───────────────┴──────────────┬───────────────┴───────┬───────┘
                │                              │                       │
