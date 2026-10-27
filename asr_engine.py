@@ -218,7 +218,7 @@ def polish_speech_transcript(raw_text: str, context_prompt: str = "", terms: str
         "4. Output ONLY the clean, polished transcript text without any introductory commentary or quotes."
     )
 
-    models_to_try = ["gemini-3.5-flash", "gemini-3.5-flash-lite"]
+    models_to_try = ["gemini-3.5-flash-lite", "gemini-3.5-flash"]
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {"temperature": 0.0}
@@ -279,7 +279,7 @@ def summarize_meeting(transcript: str, context_prompt: str = "") -> str:
         "Do not refer to the interaction as a 'meeting', 'session', or 'call'. Present all information directly and authoritatively."
     )
 
-    models_to_try = ["gemini-3.5-flash", "gemini-3.5-flash-lite"]
+    models_to_try = ["gemini-3.5-flash-lite", "gemini-3.5-flash"]
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {"temperature": 0.2}

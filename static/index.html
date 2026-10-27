@@ -1957,18 +1957,17 @@
           }
         }
 
-        // Instantaneous Antigravity-Grade Finalization (0ms lag):
-        // 1. Instantly display and commit the live finalized transcript with smart typography
-        // 2. Zero server upload latency - finishes immediately upon clicking Stop
+        // Antigravity-Grade Dual Pipeline:
+        // 1. Immediately display live Web Speech caption as preliminary preview
+        // 2. Fast sub-2s Gemini punctuation restoration pass to insert commas, periods, colons & capitalization
         const cleanPreview = formatSmartTypography(rawText);
         if (cleanPreview) {
           accumulatedText = cleanPreview;
           googleSpeechFinalText = cleanPreview;
           if (transcriptEl) {
-            transcriptEl.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${cleanPreview}</span>`;
-            transcriptEl.setAttribute('contenteditable', 'true');
+            transcriptEl.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${cleanPreview}</span> <span style="color: #A58E8A; font-size: 13px;">(Adding punctuation...)</span>`;
           }
-          finishCleanup();
+          polishWithGemini(cleanPreview);
         } else if (latestWavBlob && allPcmChunks.length > 0) {
           // Fallback only when Web Speech is unavailable (Firefox/Safari) and rawText is empty
           if (transcriptEl) {
