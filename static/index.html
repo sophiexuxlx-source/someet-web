@@ -1368,7 +1368,7 @@
       const sumEl = document.getElementById('summaryText');
       sumBtn.disabled = true;
       sumBtn.innerHTML = `<span>⏳</span> Generating...`;
-      sumEl.innerHTML = `<span style="color: #64748B;">Analyzing speech intelligence...</span>`;
+      sumEl.innerHTML = `<span style="color: #64748B;">Analyzing speech...</span>`;
 
       try {
         const resp = await fetch('/api/summarize', {
