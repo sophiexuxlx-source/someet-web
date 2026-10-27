@@ -656,6 +656,135 @@
       border-radius: 4px;
       flex-shrink: 0;
     }
+
+    /* User Tier Badges & Quota Display */
+    .tier-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+      white-space: nowrap;
+    }
+    .tier-badge.founder {
+      background: #E9E1DF;
+      color: #3E3433;
+      border: 1px solid #A58E8A;
+    }
+    .tier-badge.standard {
+      background: #F2ECE1;
+      color: #5A4A48;
+      border: 1px solid #D5CAB9;
+    }
+    .tier-badge.visitor {
+      background: #E9E1DF;
+      color: #7A6966;
+      border: 1px dashed #A58E8A;
+    }
+    .tier-badge:hover {
+      transform: translateY(-1px);
+      filter: brightness(0.97);
+    }
+    .quota-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      margin-bottom: 2px;
+      padding: 6px 16px;
+      background: #F9F2E8;
+      border: 1px solid #D5CAB9;
+      border-radius: 20px;
+      font-size: 13px;
+      color: #5A4A48;
+      font-weight: 500;
+    }
+    .quota-pill strong {
+      color: #3E3433;
+      font-weight: 700;
+    }
+    .quota-pill a {
+      color: #7A6966;
+      text-decoration: underline;
+      font-weight: 600;
+      cursor: pointer;
+      margin-left: 4px;
+    }
+
+    /* Capacity Modal Styling - Almond Mochi Palette */
+    .capacity-card {
+      background: #FBF7F7;
+      border-radius: 20px;
+      padding: 30px 28px;
+      max-width: 520px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      text-align: left;
+      box-shadow: 0 20px 40px rgba(62, 52, 51, 0.22);
+      border: 1px solid #A58E8A;
+      position: relative;
+      animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .capacity-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .capacity-badge {
+      color: #7A6966;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      background: #E9E1DF;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .capacity-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: #3E3433;
+      margin-bottom: 6px;
+      letter-spacing: -0.3px;
+    }
+    .capacity-intro {
+      font-size: 13px;
+      color: #7A6966;
+      line-height: 1.5;
+      margin-bottom: 18px;
+    }
+    .capacity-info-box {
+      background: #FFFFFF;
+      border: 1px solid #E2D6D3;
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 18px;
+    }
+    .capacity-info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: #5A4A48;
+      padding: 4px 0;
+    }
+    .capacity-info-row strong {
+      color: #3E3433;
+      font-weight: 700;
+    }
+    .capacity-message-card {
+      background: #FFFFFF;
+      border: 1px solid #E2D6D3;
+      border-radius: 12px;
+      padding: 16px 18px;
+    }
   </style>
 </head>
 <body>
@@ -667,6 +796,7 @@
       <div class="logo-title">SoMeet</div>
     </div>
     <div class="auth-bar">
+      <div id="userTierBadge" class="tier-badge visitor" onclick="handleTierBadgeClick()" title="Click to Sign In and activate 1 hour of free speech recording">🎁 1 Hr Free on Sign-in</div>
       <button class="btn-action" id="authBtn" onclick="handleAuth()">Sign In</button>
     </div>
   </header>
@@ -674,7 +804,8 @@
   <!-- Main Body -->
   <main>
     <div class="timer-display" id="timer">00:00</div>
-    <div class="timer-subtitle">Click Record to start live captioning, then begin speaking once the timer starts.</div>
+    <div class="timer-subtitle" id="timerSubtitle">Click Record to start live captioning, then begin speaking once the timer starts.</div>
+    <div class="quota-pill" id="recordingQuotaPill">🎁 <strong>1 Hour Free Speech Recording</strong> for anyone who signs in. <a onclick="openAuthModal()">Sign in with Google</a></div>
 
     <!-- Live Caption Card -->
     <div class="studio-card card-caption">
@@ -735,9 +866,9 @@
   <div class="modal-overlay" id="authModal">
     <div class="auth-card">
       <button class="modal-close-btn" onclick="closeAuthModal()">✕</button>
-      <div class="auth-card-icon">🔒</div>
-      <h3>Private Beta Testing</h3>
-      <p>Registration is currently closed while our initial testing phase is underway. Once testing is completed, SoMeet will officially open for public subscription at a very reasonable, affordable fee.</p>
+      <div class="auth-card-icon">🎙️</div>
+      <h3>Sign In to SoMeet</h3>
+      <p>Sign in with Google to activate your <strong>1 hour of free speech recording</strong> and AI meeting intelligence.</p>
       
       <button class="btn-google" onclick="signInWithGoogle()">
         <svg viewBox="0 0 24 24">
@@ -750,11 +881,12 @@
       </button>
 
       <div class="auth-perks-box">
-        <strong>🔒 Private Beta Status:</strong>
+        <strong>🎁 Free Tier Includes:</strong>
         <ul>
-          <li>New user registrations are currently paused for testing.</li>
-          <li>Authorized testers and founders can sign in to test.</li>
-          <li>Public launch with affordable subscription plans coming soon!</li>
+          <li><strong>1 Hour Free Speech Recording</strong> for anyone who signs in.</li>
+          <li>Sub-second live streaming acoustic transcription.</li>
+          <li>Post-meeting executive summary & Word (.docx) export.</li>
+          <li>Strict zero-retention privacy with local memory processing.</li>
         </ul>
       </div>
 
@@ -834,6 +966,54 @@
     </div>
   </div>
 
+  <!-- Capacity Request / Upgrade Modal -->
+  <div class="modal-overlay" id="capacityModal">
+    <div class="capacity-card">
+      <div class="capacity-header">
+        <div class="capacity-badge">CAPACITY & EXPANSION</div>
+        <button class="modal-close-btn" onclick="closeCapacityModal()" style="position: static; font-size: 13px; background: #E9E1DF; border-radius: 20px; padding: 4px 14px; color: #3E3433; font-weight: 600; cursor: pointer; border: none;">Close</button>
+      </div>
+      <h2 class="capacity-title" id="capModalTitle">Recording Quota & Capacity</h2>
+      <p class="capacity-intro" id="capModalIntro">
+        SoMeet includes 1 free hour of AI speech recording for every user. Need more hours or unlimited team capacity? Send a message directly to Sophie to upgrade your account!
+      </p>
+
+      <div class="capacity-info-box">
+        <div class="capacity-info-row">
+          <span>Signed in as:</span>
+          <strong id="capUserEmail">Not signed in</strong>
+        </div>
+        <div class="capacity-info-row">
+          <span>Account Tier:</span>
+          <strong id="capUserTier">Standard Free Tier</strong>
+        </div>
+        <div class="capacity-info-row">
+          <span>Remaining Free Time:</span>
+          <strong id="capUserRemaining" style="color: #7A6966;">60m 00s</strong>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+        <a id="capEmailLink" href="mailto:sophiexuxlx@gmail.com?subject=SoMeet%20Capacity%20Expansion%20Request" style="flex: 1; min-width: 180px; text-align: center; text-decoration: none; background: #A58E8A; color: #FFFFFF; font-weight: 600; font-size: 13.5px; padding: 11px 16px; border-radius: 10px; box-shadow: 0 2px 6px rgba(165,142,138,0.25);">
+          ✉️ Email Sophie
+        </a>
+        <button onclick="copySophieEmail()" id="capCopyEmailBtn" style="padding: 11px 16px; background: #FFFFFF; border: 1px solid #A58E8A; border-radius: 10px; font-weight: 600; font-size: 13.5px; color: #7A6966; cursor: pointer;">
+          📋 Copy Email
+        </button>
+      </div>
+
+      <div class="capacity-message-card">
+        <h4 style="margin: 0 0 6px 0; font-size: 13.5px; font-weight: 700; color: #3E3433;">Send a Direct Message to Sophie</h4>
+        <p style="margin: 0 0 10px 0; font-size: 12px; color: #7A6966;">Let Sophie know your intended usage and we'll expand your recording capacity.</p>
+        <textarea id="capMessageText" rows="3" placeholder="Hi Sophie, I'd like to request additional recording capacity for my account..." style="width: 100%; box-sizing: border-box; border: 1px solid #E2D6D3; border-radius: 8px; padding: 10px 12px; font-size: 13px; font-family: inherit; color: #3E3433; outline: none; resize: vertical;"></textarea>
+        <button onclick="submitCapacityMessage()" id="capSubmitBtn" style="margin-top: 10px; width: 100%; background: #7A6966; color: #FFFFFF; border: none; border-radius: 8px; padding: 9px; font-size: 13px; font-weight: 600; cursor: pointer;">
+          Send Request to Sophie
+        </button>
+        <div id="capSubmitResult" style="display: none; margin-top: 8px; font-size: 12.5px; color: #2E7D32; font-weight: 600; text-align: center;"></div>
+      </div>
+    </div>
+  </div>
+
 
   <script>
     // State
@@ -843,6 +1023,7 @@
     let isFinalizing = false;
     let timerInterval = null;
     let elapsedSeconds = 0;
+    let lastSyncSeconds = 0;
     let accumulatedText = "";
     let googleSpeechFinalText = "";
     let googleSpeechInterimText = "";
@@ -861,12 +1042,239 @@
     let liveStreamingText = "";
     let speechRecognizer = null;
 
-    // Authorized testers whitelist (Registration closed to public)
-    const AUTHORIZED_TESTERS = [
+    // User Quota & Tier State (1 Hour Free for Standard Users, Unlimited for Sophie)
+    let userTierInfo = {
+      is_unlimited: false,
+      tier: "Standard Free Tier",
+      quota_seconds: 3600,
+      used_seconds: 0,
+      remaining_seconds: 3600,
+      is_exhausted: false,
+      admin_contact: "sophiexuxlx@gmail.com"
+    };
+
+    const LIFETIME_UNLIMITED_EMAILS = [
       "sophiexuxlx@gmail.com",
-      "xusophiexiaoxiao@gmail.com",
-      "architect_test@supermind.ai"
+      "xusophiexiaoxiao@gmail.com"
     ];
+
+    function formatMinsSecs(totalSeconds) {
+      if (totalSeconds == null || totalSeconds < 0) return "00:00";
+      const m = Math.floor(totalSeconds / 60);
+      const s = totalSeconds % 60;
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    async function fetchUserTierProfile() {
+      if (!currentUser) return;
+      try {
+        const token = await currentUser.getIdToken();
+        firebaseIdToken = token;
+        const res = await fetch('/api/user/me', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (res.ok) {
+          const profile = await res.json();
+          userTierInfo = {
+            ...userTierInfo,
+            ...profile
+          };
+          updateTierUI();
+        }
+      } catch (err) {
+        console.warn("[Tier] Error fetching profile:", err);
+      }
+    }
+
+    function updateTierUI() {
+      const headerBadge = document.getElementById('userTierBadge');
+      const quotaPill = document.getElementById('recordingQuotaPill');
+
+      if (!currentUser) {
+        if (headerBadge) {
+          headerBadge.className = 'tier-badge visitor';
+          headerBadge.innerHTML = '🎁 1 Hr Free on Sign-in';
+          headerBadge.title = 'Click to Sign In and activate 1 hour of free speech recording';
+          headerBadge.onclick = openAuthModal;
+        }
+        if (quotaPill) {
+          quotaPill.innerHTML = '🎁 <strong>1 Hour Free Speech Recording</strong> for anyone who signs in. <a onclick="openAuthModal()">Sign in with Google</a>';
+        }
+        return;
+      }
+
+      const email = (currentUser.email || "").toLowerCase();
+      const isUnlimited = userTierInfo.is_unlimited || LIFETIME_UNLIMITED_EMAILS.includes(email);
+
+      if (isUnlimited) {
+        if (headerBadge) {
+          headerBadge.className = 'tier-badge founder';
+          headerBadge.innerHTML = '👑 Lifetime Unlimited';
+          headerBadge.title = 'Founder Account with Lifetime Unlimited Recording';
+          headerBadge.onclick = openCapacityModal;
+        }
+        if (quotaPill) {
+          quotaPill.innerHTML = '👑 <strong>Founder Account</strong> • Lifetime Unlimited Recording & Intelligence';
+        }
+      } else {
+        const remSec = Math.max(0, userTierInfo.remaining_seconds);
+        const remStr = formatMinsSecs(remSec);
+        if (headerBadge) {
+          headerBadge.className = 'tier-badge standard';
+          if (remSec <= 0) {
+            headerBadge.innerHTML = '⚠️ Free Limit Reached';
+            headerBadge.style.color = '#C53030';
+          } else {
+            headerBadge.innerHTML = `⏱️ ${remStr} remaining`;
+            headerBadge.style.color = '';
+          }
+          headerBadge.title = 'Click to view recording capacity or request upgrade';
+          headerBadge.onclick = openCapacityModal;
+        }
+        if (quotaPill) {
+          if (remSec <= 0) {
+            quotaPill.innerHTML = '⚠️ <strong>Free 1-Hour Limit Reached</strong> • <a onclick="openCapacityModal()">Request More Capacity from Sophie</a>';
+          } else {
+            quotaPill.innerHTML = `⏱️ Free Quota: <strong>${remStr} remaining</strong> of 1 hour • <a onclick="openCapacityModal()">Need more?</a>`;
+          }
+        }
+      }
+    }
+
+    function handleTierBadgeClick() {
+      if (!currentUser) {
+        openAuthModal();
+      } else {
+        openCapacityModal();
+      }
+    }
+
+    function openCapacityModal() {
+      const modal = document.getElementById('capacityModal');
+      const emailEl = document.getElementById('capUserEmail');
+      const tierEl = document.getElementById('capUserTier');
+      const remEl = document.getElementById('capUserRemaining');
+      const emailLink = document.getElementById('capEmailLink');
+      const titleEl = document.getElementById('capModalTitle');
+      const introEl = document.getElementById('capModalIntro');
+
+      if (emailEl) emailEl.innerText = currentUser ? (currentUser.email || "Signed in user") : "Not signed in";
+      
+      const email = currentUser ? (currentUser.email || "").toLowerCase() : "";
+      const isUnlimited = userTierInfo.is_unlimited || LIFETIME_UNLIMITED_EMAILS.includes(email);
+
+      if (tierEl) tierEl.innerText = isUnlimited ? "Founder (Lifetime Unlimited)" : "Standard Free Tier (1 Hour)";
+      
+      if (remEl) {
+        if (isUnlimited) {
+          remEl.innerText = "Unlimited (Lifetime Access)";
+          remEl.style.color = "#2E7D32";
+        } else {
+          const remStr = formatMinsSecs(userTierInfo.remaining_seconds);
+          remEl.innerText = `${remStr} remaining`;
+          remEl.style.color = userTierInfo.remaining_seconds <= 0 ? "#C53030" : "#7A6966";
+        }
+      }
+
+      if (isUnlimited) {
+        if (titleEl) titleEl.innerText = "Founder Account (Unlimited)";
+        if (introEl) introEl.innerText = "You have full lifetime unlimited access to SoMeet recording and Gemini meeting intelligence.";
+      } else if (userTierInfo.remaining_seconds <= 0) {
+        if (titleEl) titleEl.innerText = "Free 1-Hour Limit Reached";
+        if (introEl) introEl.innerText = "You have used your 1 hour of free speech recording! To expand your account with more hours or unlimited team access, send a message to Sophie.";
+      } else {
+        if (titleEl) titleEl.innerText = "Recording Quota & Capacity";
+        if (introEl) introEl.innerText = "SoMeet includes 1 free hour of AI speech recording for every user. Need more hours or unlimited team capacity? Send a message directly to Sophie to upgrade your account!";
+      }
+
+      const userEmail = currentUser ? currentUser.email : "user";
+      if (emailLink) {
+        emailLink.href = `mailto:sophiexuxlx@gmail.com?subject=SoMeet%20Capacity%20Expansion%20Request&body=Hi%20Sophie,%0D%0A%0D%0AI'm%20using%20SoMeet%20with%20my%20account%20(${encodeURIComponent(userEmail)}).%0D%0A%0D%0AI'd%20love%20to%20request%20additional%20recording%20capacity.%0D%0A%0D%0AThank%20you!`;
+      }
+
+      if (modal) modal.classList.add('active');
+    }
+
+    function closeCapacityModal() {
+      const modal = document.getElementById('capacityModal');
+      if (modal) modal.classList.remove('active');
+    }
+
+    function copySophieEmail() {
+      navigator.clipboard.writeText("sophiexuxlx@gmail.com").then(() => {
+        const btn = document.getElementById('capCopyEmailBtn');
+        if (btn) {
+          const orig = btn.innerText;
+          btn.innerText = "✓ Copied!";
+          setTimeout(() => { btn.innerText = orig; }, 2000);
+        }
+      });
+    }
+
+    async function submitCapacityMessage() {
+      const textEl = document.getElementById('capMessageText');
+      const btn = document.getElementById('capSubmitBtn');
+      const feedback = document.getElementById('capSubmitResult');
+      const msg = textEl ? textEl.value.trim() : "";
+      
+      if (!msg) {
+        alert("Please enter a short message describing your capacity request.");
+        return;
+      }
+      if (btn) { btn.disabled = true; btn.innerText = "Sending..."; }
+
+      try {
+        const token = currentUser ? await currentUser.getIdToken() : "";
+        const resp = await fetch('/api/user/request_capacity', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ message: msg })
+        });
+        const data = await resp.json();
+        if (feedback) {
+          feedback.style.display = 'block';
+          feedback.innerText = "✓ Request sent to Sophie! We'll review your account and expand your quota shortly.";
+        }
+        if (textEl) textEl.value = "";
+      } catch (e) {
+        if (feedback) {
+          feedback.style.display = 'block';
+          feedback.style.color = '#C53030';
+          feedback.innerText = "Failed to send. Please email sophiexuxlx@gmail.com directly.";
+        }
+      } finally {
+        if (btn) { btn.disabled = false; btn.innerText = "Send Request to Sophie"; }
+      }
+    }
+
+    async function syncUsedSeconds(sec) {
+      if (!currentUser || sec <= 0) return;
+      const email = (currentUser.email || "").toLowerCase();
+      if (userTierInfo.is_unlimited || LIFETIME_UNLIMITED_EMAILS.includes(email)) return;
+      try {
+        const token = await currentUser.getIdToken();
+        const resp = await fetch('/api/user/usage', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ seconds: Math.round(sec) })
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          userTierInfo.used_seconds = data.used_seconds;
+          userTierInfo.remaining_seconds = data.remaining_seconds;
+          userTierInfo.is_exhausted = data.is_exhausted;
+          updateTierUI();
+        }
+      } catch (err) {
+        console.warn("[Quota] Error syncing usage:", err);
+      }
+    }
 
     // Initialize Firebase Auth
     let authInitialized = false;
@@ -879,24 +1287,26 @@
           firebase.initializeApp(config.firebase);
           firebase.auth().onAuthStateChanged(async (user) => {
             if (user) {
-              const email = (user.email || "").toLowerCase();
-              const isAllowed = AUTHORIZED_TESTERS.some(e => e.toLowerCase() === email) || email.endsWith("@supermind.ai");
-              if (!isAllowed) {
-                alert("🔒 Registration is currently closed.\n\nSoMeet is currently restricted to private testing participants. Public subscription will open soon once testing is complete!");
-                await firebase.auth().signOut();
-                currentUser = null;
-                firebaseIdToken = null;
-                resetAuthUI();
-                return;
-              }
               currentUser = user;
               firebaseIdToken = await user.getIdToken();
+              await fetchUserTierProfile();
               updateAuthUI(user);
+              updateTierUI();
               closeAuthModal();
             } else {
               currentUser = null;
               firebaseIdToken = null;
+              userTierInfo = {
+                is_unlimited: false,
+                tier: "Standard Free Tier",
+                quota_seconds: 3600,
+                used_seconds: 0,
+                remaining_seconds: 3600,
+                is_exhausted: false,
+                admin_contact: "sophiexuxlx@gmail.com"
+              };
               resetAuthUI();
+              updateTierUI();
             }
           });
           authInitialized = true;
@@ -908,6 +1318,7 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       initFirebaseAuth();
+      updateTierUI();
 
       // Close modals on overlay backdrop click
       document.querySelectorAll('.modal-overlay').forEach(overlay => {
@@ -1034,6 +1445,12 @@
     function checkAuthOrGate(actionName = "use this feature") {
       if (!currentUser) {
         openAuthModal();
+        return false;
+      }
+      const email = (currentUser.email || "").toLowerCase();
+      const isUnlimited = userTierInfo.is_unlimited || LIFETIME_UNLIMITED_EMAILS.includes(email);
+      if (!isUnlimited && userTierInfo.remaining_seconds <= 0) {
+        openCapacityModal();
         return false;
       }
       return true;
@@ -1262,10 +1679,37 @@
           }
 
           elapsedSeconds = 0;
+          lastSyncSeconds = 0;
           updateTimerDisplay();
           timerInterval = setInterval(() => {
             elapsedSeconds++;
             updateTimerDisplay();
+
+            const email = (currentUser && currentUser.email || "").toLowerCase();
+            const isUnlimited = userTierInfo.is_unlimited || LIFETIME_UNLIMITED_EMAILS.includes(email);
+
+            if (!isUnlimited) {
+              if (userTierInfo.remaining_seconds > 0) {
+                userTierInfo.remaining_seconds--;
+                userTierInfo.used_seconds++;
+              }
+              updateTierUI();
+
+              // Auto-sync every 30 seconds
+              if (elapsedSeconds - lastSyncSeconds >= 30) {
+                syncUsedSeconds(elapsedSeconds - lastSyncSeconds);
+                lastSyncSeconds = elapsedSeconds;
+              }
+
+              // Auto-stop when quota runs out
+              if (userTierInfo.remaining_seconds <= 0) {
+                console.log("[Quota] 60-minute free limit exhausted. Stopping recording.");
+                toggleRecording();
+                setTimeout(() => {
+                  openCapacityModal();
+                }, 600);
+              }
+            }
           }, 1000);
 
         } catch (err) {
@@ -1276,6 +1720,13 @@
         isRecording = false;
         isFinalizing = true;
         clearInterval(timerInterval);
+
+        const remainingToSync = elapsedSeconds - lastSyncSeconds;
+        if (remainingToSync > 0) {
+          syncUsedSeconds(remainingToSync);
+          lastSyncSeconds = elapsedSeconds;
+        }
+
         btn.classList.remove('recording');
         btnText.innerText = "Processing...";
         if (micIndicator) micIndicator.style.display = 'none';
@@ -1429,7 +1880,13 @@
     function finishCleanup() {
       isFinalizing = false;
       const btnText = document.getElementById('btnText');
-      btnText.innerText = "Record";
+      const email = (currentUser && currentUser.email || "").toLowerCase();
+      const isUnlimited = userTierInfo.is_unlimited || LIFETIME_UNLIMITED_EMAILS.includes(email);
+      if (currentUser && !isUnlimited && userTierInfo.remaining_seconds <= 0) {
+        btnText.innerText = "Limit Reached";
+      } else {
+        btnText.innerText = "Record";
+      }
 
       if (ws) {
         try { ws.close(); } catch(e) {}
