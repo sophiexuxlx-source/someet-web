@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SoMeet Architecture Overview Card</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: #0D1117;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "SF Pro Text", Helvetica, Arial, sans-serif;
+      color: #E6EDF3;
+      padding: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .diagram-container {
+      width: 1020px;
+      background: #161B22;
+      border: 1px solid #30363D;
+      border-radius: 16px;
+      padding: 36px 40px 42px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      position: relative;
+    }
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+      border-bottom: 1px solid #21262D;
+      padding-bottom: 18px;
+    }
+    .title-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .logo-badge {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #B59E9A, #8E7571);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 16px;
+      color: white;
+      box-shadow: 0 4px 12px rgba(181, 158, 154, 0.3);
+    }
+    .title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      color: #F0F6FC;
+    }
+    .subtitle {
+      font-size: 13px;
+      color: #8B949E;
+      margin-top: 2px;
+    }
+    .badge-privacy {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(35, 134, 54, 0.18);
+      border: 1px solid rgba(46, 160, 67, 0.4);
+      color: #3FB950;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* Architecture Grid */
+    .arch-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* Layer 1: Client */
+    .layer-card {
+      background: #0D1117;
+      border: 1px solid #30363D;
+      border-radius: 12px;
+      padding: 18px 22px;
+      position: relative;
+    }
+    .layer-title-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .layer-title {
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: #58A6FF;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .layer-pill {
+      font-size: 11px;
+      background: #21262D;
+      color: #C9D1D9;
+      padding: 3px 10px;
+      border-radius: 12px;
+      border: 1px solid #30363D;
+    }
+    .client-chips {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .chip {
+      background: #161B22;
+      border: 1px solid #30363D;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      color: #C9D1D9;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .chip strong {
+      color: #F0F6FC;
+    }
+
+    /* Flow connector */
+    .flow-connector {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      margin: -4px 0;
+    }
+    .flow-line {
+      height: 24px;
+      width: 2px;
+      background: #388BFD;
+      position: relative;
+    }
+    .flow-line::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: -3px;
+      width: 8px;
+      height: 8px;
+      border-left: 2px solid #388BFD;
+      border-bottom: 2px solid #388BFD;
+      transform: rotate(-45deg);
+    }
+    .flow-tag {
+      background: #1F2937;
+      border: 1px solid #374151;
+      padding: 3px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-family: ui-monospace, monospace;
+      color: #79C0FF;
+      margin-left: 12px;
+    }
+
+    /* 3-Column Middle Layer: Gateway & Services */
+    .three-col-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+    .service-box {
+      background: #0D1117;
+      border: 1px solid #30363D;
+      border-radius: 12px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+    }
+    .service-header {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: #D29922;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #21262D;
+    }
+    .service-tech {
+      font-size: 13px;
+      font-weight: 600;
+      color: #F0F6FC;
+      margin-bottom: 4px;
+    }
+    .service-desc {
+      font-size: 12px;
+      color: #8B949E;
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+    .bullet-list {
+      list-style: none;
+      margin-top: auto;
+    }
+    .bullet-list li {
+      font-size: 11.5px;
+      color: #C9D1D9;
+      margin-bottom: 5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .bullet-list li::before {
+      content: '•';
+      color: #58A6FF;
+      font-size: 14px;
+    }
+
+    /* Bottom External AI Tier */
+    .bottom-ai-layer {
+      background: #0D1117;
+      border: 1px solid #30363D;
+      border-radius: 12px;
+      padding: 18px 22px;
+    }
+    .ai-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1.2fr 0.9fr;
+      gap: 16px;
+      margin-top: 10px;
+    }
+    .ai-card {
+      background: #161B22;
+      border: 1px solid #282E33;
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .ai-role {
+      font-size: 11px;
+      font-family: ui-monospace, monospace;
+      font-weight: 600;
+      color: #A371F7;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .ai-model {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #F0F6FC;
+      margin-bottom: 6px;
+    }
+    .ai-points {
+      font-size: 11.5px;
+      color: #8B949E;
+      line-height: 1.45;
+    }
+
+    /* Footer Trust Banner */
+    .trust-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid #21262D;
+      font-size: 12px;
+      color: #8B949E;
+    }
+    .trust-highlight {
+      color: #3FB950;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="diagram-container">
+    <!-- Header -->
+    <div class="header-row">
+      <div class="title-group">
+        <div class="logo-badge">SM</div>
+        <div>
+          <div class="title">SoMeet — System Architecture Overview</div>
+          <div class="subtitle">Real-Time Acoustic Streaming, AI Executive Synthesis & Zero-Storage Privacy Pipeline</div>
+        </div>
+      </div>
+      <div class="badge-privacy">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>Zero-Storage Guarantee</span>
+      </div>
+    </div>
+
+    <div class="arch-stack">
+      <!-- Layer 1: User Browser -->
+      <div class="layer-card">
+        <div class="layer-title-bar">
+          <div class="layer-title">
+            <span>●</span> Layer 1: Client Runtime (User Browser)
+          </div>
+          <div class="layer-pill">SPA · 100% In-Memory Processing</div>
+        </div>
+        <div class="client-chips">
+          <div class="chip">
+            <strong>Microphone Ingestion</strong> 48kHz → 16kHz PCM16 Downsampling (AudioContext ScriptProcessorNode)
+          </div>
+          <div class="chip">
+            <strong>Local Export</strong> Client-side Word (.docx) generation & RIFF/WAV packaging (Zero server roundtrip)
+          </div>
+          <div class="chip">
+            <strong>Companion UI</strong> 3D Robot Mascot interactive recording controller & Almond Mochi responsive system
+          </div>
+        </div>
+      </div>
+
+      <!-- Connector -->
+      <div class="flow-connector">
+        <div class="flow-line"></div>
+        <div class="flow-tag">WSS / HTTPS · Sub-second audio frames</div>
+      </div>
+
+      <!-- Layer 2: Backend Services -->
+      <div class="three-col-grid">
+        <div class="service-box">
+          <div class="service-header">WebSocket Streaming</div>
+          <div class="service-tech">FastAPI & Uvicorn Async Gateway</div>
+          <div class="service-desc">Bi-directional streaming protocol handling high-throughput PCM16 audio chunks.</div>
+          <ul class="bullet-list">
+            <li>Endpoint: <code>/ws/stream</code></li>
+            <li>In-memory circular audio buffer</li>
+            <li>Zero server audio persistence</li>
+          </ul>
+        </div>
+
+        <div class="service-box">
+          <div class="service-header">Executive Summary API</div>
+          <div class="service-tech">Python 3.12 Asynchronous REST</div>
+          <div class="service-desc">Post-speech synthesis endpoint extracting structured business takeaways.</div>
+          <ul class="bullet-list">
+            <li>Endpoint: <code>/api/summarize</code></li>
+            <li>Pristine uncompressed WAV processing</li>
+            <li>Local memory cleanup upon completion</li>
+          </ul>
+        </div>
+
+        <div class="service-box">
+          <div class="service-header">Identity & Quota Control</div>
+          <div class="service-tech">Firebase Admin & Firestore</div>
+          <div class="service-desc">Token-authenticated account tier management and time budgeting.</div>
+          <ul class="bullet-list">
+            <li>Option A Whitelist (20 early users)</li>
+            <li>120-minute beta allowance (90 days)</li>
+            <li>30s debounced client usage sync</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Connector -->
+      <div class="flow-connector">
+        <div class="flow-line"></div>
+        <div class="flow-tag">Secure API Dispatch · Strict Zero-Data Retention</div>
+      </div>
+
+      <!-- Layer 3: External AI Tier -->
+      <div class="bottom-ai-layer">
+        <div class="layer-title-bar">
+          <div class="layer-title" style="color: #A371F7;">
+            <span>●</span> Layer 3: AI Inference & Acoustic Engine
+          </div>
+          <div class="layer-pill">Enterprise Privacy & Non-Training SLA</div>
+        </div>
+        <div class="ai-grid">
+          <div class="ai-card">
+            <div class="ai-role">Real-Time Live Captioning</div>
+            <div class="ai-model">Google Speech Neural Engine</div>
+            <div class="ai-points">Sub-second continuous streaming captions with dynamic interim correction and acoustic noise suppression.</div>
+          </div>
+          <div class="ai-card">
+            <div class="ai-role">Executive Summary & Decisions</div>
+            <div class="ai-model">Google Gemini 2.5 Flash</div>
+            <div class="ai-points">Extracts Key Discussion Points, Formal Decisions, and Action Items with deadlines; zero retention policy.</div>
+          </div>
+          <div class="ai-card">
+            <div class="ai-role">Cloud Authentication</div>
+            <div class="ai-model">Firebase Auth & Firestore</div>
+            <div class="ai-points">Google OAuth + Email magic links with cryptographically verified ID tokens.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Trust Info -->
+    <div class="trust-footer">
+      <div>Architecture Designed for: <span style="color: #F0F6FC; font-weight: 600;">Superlinear Academy & LinkedIn Showcase</span></div>
+      <div>
+        <span class="trust-highlight">✓ Local In-Memory Buffer</span> &nbsp;•&nbsp;
+        <span class="trust-highlight">✓ Zero Audio/Transcript Server Storage</span> &nbsp;•&nbsp;
+        <span class="trust-highlight">✓ Sub-Second Acoustic Latency</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
