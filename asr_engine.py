@@ -42,6 +42,9 @@ def format_smart_typography(text: str) -> str:
     t = re.sub(r'\bgeneral\s+ledger\b', 'General Ledger', t, flags=re.I)
     t = re.sub(r'\b(mct|rcm|ifrs|osfi|gaap)\b', lambda m: m.group(0).upper(), t, flags=re.I)
     t = re.sub(r'\bat\s+close\s+forecast(?:s)?\b', 'actuals, forecasts', t, flags=re.I)
+    t = re.sub(r'\(\s*CPA\s*\)\s+designation', 'CPA designation', t, flags=re.I)
+    t = re.sub(r'^[•\-\*]\s*', '', t)
+    t = re.sub(r'\s*[•]\s*', ' ', t)
 
     # 2. Wrap credential series in parentheses following designation/credential/certifications keywords
     t = re.sub(
@@ -160,16 +163,14 @@ def transcribe_audio_base64(b64_audio: str, mime_type: str = "audio/wav", contex
         "Listen to the audio recording and transcribe all spoken words verbatim from start to finish.\n\n"
         f"{context_note}"
         "Strict Transcription Guidelines:\n"
-        "1. Full-fidelity audio transcription: transcribe every word spoken from the very first syllable without dropping opening phrases (e.g. 'Prepare and present...').\n"
-        "2. Domain terminology & capitalization:\n"
-        "   - Accurately capture standard accounting & finance triplets such as 'actuals, forecasts, and plans' (never transcribe as 'at close forecast').\n"
-        "   - Capitalize formal regulatory, board, and accounting terms: 'Minimum Capital Test (MCT)', 'Regulatory Compliance Management (RCM)', 'Board and Audit Committee', 'General Ledger', 'IFRS 17', 'OSFI', 'GAAP'.\n"
-        "   - Format acronyms following their full name in parentheses, e.g. 'Minimum Capital Test (MCT)', 'Regulatory Compliance Management (RCM)'.\n"
-        "   - Wrap professional designations in parentheses, e.g. '(CPA, CFA, MBA)'.\n"
-        "3. Punctuation & Formatting:\n"
-        "   - Insert accurate punctuation: commas, periods, colons for headers.\n"
-        "   - When distinct bullet points, action items, or responsibilities are spoken, format each on a new line starting with '• '.\n"
-        "4. Do NOT summarize, invent words, or omit sentences.\n"
+        "1. Full-fidelity audio transcription: transcribe every word spoken from the very first syllable (e.g. \"Bachelor's degree in accounting\", \"Prepare and present...\"). Never drop opening words.\n"
+        "2. Exact domain terminology & capitalization:\n"
+        "   - Capitalize formal corporate, board, and accounting terms: 'Minimum Capital Test (MCT)', 'Regulatory Compliance Management (RCM)', 'Board and Audit Committee', 'General Ledger', 'CPA designation', 'IFRS 17', 'OSFI'.\n"
+        "   - Enclose acronyms in parentheses ONLY when they follow their full expanded name (e.g. 'Minimum Capital Test (MCT)'). Do NOT put parentheses around 'CPA designation'.\n"
+        "3. Natural punctuation:\n"
+        "   - Insert clean standard punctuation (commas, periods, colons for headers).\n"
+        "   - Output continuous, fluent natural prose. Do NOT inject bullet point symbols ('•') unless explicitly spoken by the speaker.\n"
+        "4. Do NOT hallucinate, summarize, omit, or replace words.\n"
         "5. Output ONLY the raw transcript text."
     )
 

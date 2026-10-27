@@ -1176,6 +1176,23 @@ registerProcessor('pcm-worklet-processor', PcmWorkletProcessor);
     const pcmWorkletBlob = new Blob([pcmWorkletCode], { type: 'application/javascript' });
     const pcmWorkletUrl = URL.createObjectURL(pcmWorkletBlob);
 
+    // Hardware Microphone Zero-Latency Pre-Warming
+    async function preWarmAudioPipeline() {
+      try {
+        const isWarmMicEnabled = localStorage.getItem('someet_warm_mic') !== 'false';
+        if (isWarmMicEnabled && (!warmMediaStream || !warmMediaStream.active)) {
+          warmMediaStream = await navigator.mediaDevices.getUserMedia({
+            audio: { channelCount: 1, echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+          });
+          console.log("[Audio Pipeline] Pre-warmed microphone hardware stream successfully");
+        }
+      } catch (e) {
+        // Deferred until explicit user gesture
+      }
+    }
+    window.addEventListener('DOMContentLoaded', preWarmAudioPipeline);
+    window.addEventListener('pointerdown', preWarmAudioPipeline, { once: true });
+
     // User Quota & Tier State (120 Minutes Free for Approved Testers, Valid for 90 Days)
     let userTierInfo = {
       is_unlimited: false,
@@ -1670,6 +1687,57 @@ registerProcessor('pcm-worklet-processor', PcmWorkletProcessor);
 
       if (!isRecording) {
         try {
+          // 1. Immediately engage recording state & UI (0ms instant user feedback)
+          isRecording = true;
+          if (micIndicator) micIndicator.style.display = 'flex';
+          btn.classList.add('recording');
+          btn.title = "Listening... Click mascot to finish";
+          const mascotHint = document.getElementById('mascotHint');
+          if (mascotHint) mascotHint.innerText = "Listening... click to finish";
+          if (btnText) btnText.innerText = "Stop";
+
+          const transcriptEl = document.getElementById('transcriptText');
+          if (transcriptEl) {
+            transcriptEl.setAttribute('contenteditable', 'false');
+          }
+          if (!accumulatedText) {
+            transcriptEl.innerHTML = `<span style="color: #64748B;">Listening and streaming speech...</span>`;
+          }
+
+          elapsedSeconds = 0;
+          lastSyncSeconds = 0;
+          updateTimerDisplay();
+          timerInterval = setInterval(() => {
+            elapsedSeconds++;
+            updateTimerDisplay();
+
+            const email = (currentUser && currentUser.email || "").toLowerCase();
+            const isUnlimited = userTierInfo.is_unlimited || LIFETIME_UNLIMITED_EMAILS.includes(email);
+
+            if (!isUnlimited) {
+              if (userTierInfo.remaining_seconds > 0) {
+                userTierInfo.remaining_seconds--;
+                userTierInfo.used_seconds++;
+              }
+              updateTierUI();
+
+              // Auto-sync every 30 seconds
+              if (elapsedSeconds - lastSyncSeconds >= 30) {
+                syncUsedSeconds(elapsedSeconds - lastSyncSeconds);
+                lastSyncSeconds = elapsedSeconds;
+              }
+
+              // Auto-stop when quota runs out
+              if (userTierInfo.remaining_seconds <= 0) {
+                console.log("[Quota] 60-minute free limit exhausted. Stopping recording.");
+                toggleRecording();
+                setTimeout(() => {
+                  openCapacityModal();
+                }, 600);
+              }
+            }
+          }, 1000);
+
           // Reset session state for fresh recording take
           allPcmChunks = [];
           recordedChunks = [];
@@ -1679,7 +1747,7 @@ registerProcessor('pcm-worklet-processor', PcmWorkletProcessor);
           googleSpeechInterimText = "";
           liveStreamingText = "";
 
-          // 1. Request microphone or reuse warm microphone
+          // 2. Request microphone or reuse warm microphone
           const isWarmMicEnabled = localStorage.getItem('someet_warm_mic') !== 'false';
           const isStreamLive = warmMediaStream && warmMediaStream.active && warmMediaStream.getAudioTracks().some(t => t.readyState === 'live');
 
@@ -1699,7 +1767,72 @@ registerProcessor('pcm-worklet-processor', PcmWorkletProcessor);
             }
           }
 
-          // 2. Open Realtime WebSocket
+          // 3. Initialize AudioContext and modern AudioWorklet FIRST (zero audio capture delay)
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          audioContext = new AudioContextClass();
+          if (audioContext.state === 'suspended') {
+            await audioContext.resume();
+          }
+
+          sourceNode = audioContext.createMediaStreamSource(mediaStream);
+
+          let lastMicUiUpdate = 0;
+          function handleRawAudioFrame(input) {
+            if (!isRecording) return;
+            // Compute RMS volume level with ~30fps UI throttling to prevent main thread jank
+            const now = performance.now();
+            if (now - lastMicUiUpdate > 33) {
+              lastMicUiUpdate = now;
+              let sum = 0;
+              for (let i = 0; i < input.length; i++) sum += input[i] * input[i];
+              const rms = Math.sqrt(sum / input.length);
+              const levelPercent = Math.min(100, Math.round(rms * 450));
+              if (micLevel) micLevel.style.width = `${levelPercent}%`;
+            }
+
+            // Downsample and stream PCM16 bytes
+            const pcm16 = downsampleTo16k(input, audioContext.sampleRate);
+            allPcmChunks.push(pcm16);
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+              ws.send(pcm16.buffer);
+            }
+          }
+
+          let usedAudioWorklet = false;
+          if (audioContext.audioWorklet) {
+            try {
+              await audioContext.audioWorklet.addModule(pcmWorkletUrl);
+              workletNode = new AudioWorkletNode(audioContext, 'pcm-worklet-processor');
+              workletNode.port.onmessage = (event) => {
+                handleRawAudioFrame(event.data);
+              };
+              sourceNode.connect(workletNode);
+              const muteNode = audioContext.createGain();
+              muteNode.gain.value = 0;
+              workletNode.connect(muteNode);
+              muteNode.connect(audioContext.destination);
+              usedAudioWorklet = true;
+              console.log("[Audio] Running on modern W3C AudioWorklet background thread (isolated & muted)");
+            } catch (workletErr) {
+              console.warn("[AudioWorklet] Worklet failed to load, falling back to ScriptProcessor:", workletErr);
+            }
+          }
+
+          if (!usedAudioWorklet) {
+            processorNode = audioContext.createScriptProcessor(4096, 1, 1);
+            processorNode.onaudioprocess = (event) => {
+              handleRawAudioFrame(event.inputBuffer.getChannelData(0));
+            };
+            sourceNode.connect(processorNode);
+            const muteNode = audioContext.createGain();
+            muteNode.gain.value = 0;
+            processorNode.connect(muteNode);
+            muteNode.connect(audioContext.destination);
+            console.log("[Audio] Running on ScriptProcessor fallback (muted)");
+          }
+
+          // 4. Connect WebSocket in parallel
           const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
           const wsUrl = `${protocol}//${window.location.host}/api/realtime/ws`;
           ws = new WebSocket(wsUrl);
@@ -1751,76 +1884,7 @@ registerProcessor('pcm-worklet-processor', PcmWorkletProcessor);
             console.error("[WS Error]", err);
           };
 
-          // 3. Initialize AudioContext and modern AudioWorklet (runs off main UI thread with fallback)
-          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-          audioContext = new AudioContextClass();
-          if (audioContext.state === 'suspended') {
-            await audioContext.resume();
-          }
-
-          sourceNode = audioContext.createMediaStreamSource(mediaStream);
-
-          let lastMicUiUpdate = 0;
-          function handleRawAudioFrame(input) {
-            if (!isRecording) return;
-            // Compute RMS volume level with ~30fps UI throttling to prevent main thread jank
-            const now = performance.now();
-            if (now - lastMicUiUpdate > 33) {
-              lastMicUiUpdate = now;
-              let sum = 0;
-              for (let i = 0; i < input.length; i++) sum += input[i] * input[i];
-              const rms = Math.sqrt(sum / input.length);
-              const levelPercent = Math.min(100, Math.round(rms * 450));
-              if (micLevel) micLevel.style.width = `${levelPercent}%`;
-            }
-
-            // Downsample and stream PCM16 bytes
-            const pcm16 = downsampleTo16k(input, audioContext.sampleRate);
-            allPcmChunks.push(pcm16);
-
-            if (ws && ws.readyState === WebSocket.OPEN) {
-              ws.send(pcm16.buffer);
-            }
-          }
-
-          let usedAudioWorklet = false;
-          if (audioContext.audioWorklet) {
-            try {
-              await audioContext.audioWorklet.addModule(pcmWorkletUrl);
-              workletNode = new AudioWorkletNode(audioContext, 'pcm-worklet-processor');
-              workletNode.port.onmessage = (event) => {
-                handleRawAudioFrame(event.data);
-              };
-              sourceNode.connect(workletNode);
-              // CRITICAL: NEVER connect microphone directly to speakers!
-              // Route through a zero-gain mute node to keep the audio graph clock ticking
-              // without playing mic audio out of speakers or triggering acoustic echo / AEC ducking.
-              const muteNode = audioContext.createGain();
-              muteNode.gain.value = 0;
-              workletNode.connect(muteNode);
-              muteNode.connect(audioContext.destination);
-              usedAudioWorklet = true;
-              console.log("[Audio] Running on modern W3C AudioWorklet background thread (isolated & muted)");
-            } catch (workletErr) {
-              console.warn("[AudioWorklet] Worklet failed to load, falling back to ScriptProcessor:", workletErr);
-            }
-          }
-
-          if (!usedAudioWorklet) {
-            // Graceful fallback for environments where AudioWorklet is unavailable
-            processorNode = audioContext.createScriptProcessor(4096, 1, 1);
-            processorNode.onaudioprocess = (event) => {
-              handleRawAudioFrame(event.inputBuffer.getChannelData(0));
-            };
-            sourceNode.connect(processorNode);
-            const muteNode = audioContext.createGain();
-            muteNode.gain.value = 0;
-            processorNode.connect(muteNode);
-            muteNode.connect(audioContext.destination);
-            console.log("[Audio] Running on ScriptProcessor fallback (muted)");
-          }
-
-          // 4. Primary Live Transcriber: Google Neural Speech Recognition (exact Antigravity engine)
+          // 5. Primary Live Transcriber: Google Neural Speech Recognition
           if (hasGoogleSpeech) {
             const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
             try {
@@ -1874,57 +1938,6 @@ registerProcessor('pcm-worklet-processor', PcmWorkletProcessor);
               console.warn("[Google Speech Init Error]", err);
             }
           }
-
-          // Update UI
-          isRecording = true;
-          if (micIndicator) micIndicator.style.display = 'flex';
-          btn.classList.add('recording');
-          btn.title = "Listening... Click mascot to finish";
-          const mascotHint = document.getElementById('mascotHint');
-          if (mascotHint) mascotHint.innerText = "Listening... click to finish";
-          if (btnText) btnText.innerText = "Stop";
-
-          const transcriptEl = document.getElementById('transcriptText');
-          if (transcriptEl) {
-            transcriptEl.setAttribute('contenteditable', 'false');
-          }
-          if (!accumulatedText) {
-            transcriptEl.innerHTML = `<span style="color: #64748B;">Listening and streaming speech...</span>`;
-          }
-
-          elapsedSeconds = 0;
-          lastSyncSeconds = 0;
-          updateTimerDisplay();
-          timerInterval = setInterval(() => {
-            elapsedSeconds++;
-            updateTimerDisplay();
-
-            const email = (currentUser && currentUser.email || "").toLowerCase();
-            const isUnlimited = userTierInfo.is_unlimited || LIFETIME_UNLIMITED_EMAILS.includes(email);
-
-            if (!isUnlimited) {
-              if (userTierInfo.remaining_seconds > 0) {
-                userTierInfo.remaining_seconds--;
-                userTierInfo.used_seconds++;
-              }
-              updateTierUI();
-
-              // Auto-sync every 30 seconds
-              if (elapsedSeconds - lastSyncSeconds >= 30) {
-                syncUsedSeconds(elapsedSeconds - lastSyncSeconds);
-                lastSyncSeconds = elapsedSeconds;
-              }
-
-              // Auto-stop when quota runs out
-              if (userTierInfo.remaining_seconds <= 0) {
-                console.log("[Quota] 60-minute free limit exhausted. Stopping recording.");
-                toggleRecording();
-                setTimeout(() => {
-                  openCapacityModal();
-                }, 600);
-              }
-            }
-          }, 1000);
 
         } catch (err) {
           alert("Microphone or Audio error: " + err.message);
@@ -2044,7 +2057,10 @@ registerProcessor('pcm-worklet-processor', PcmWorkletProcessor);
            .replace(/\baudit\s+committee\b/gi, 'Audit Committee')
            .replace(/\bgeneral\s+ledger\b/gi, 'General Ledger')
            .replace(/\b(mct|rcm|ifrs|osfi|gaap)\b/gi, (m) => m.toUpperCase())
-           .replace(/\bat\s+close\s+forecast(?:s)?\b/gi, 'actuals, forecasts');
+           .replace(/\bat\s+close\s+forecast(?:s)?\b/gi, 'actuals, forecasts')
+           .replace(/\(\s*CPA\s*\)\s+designation/gi, 'CPA designation')
+           .replace(/^[•\-\*]\s*/g, '')
+           .replace(/\s*[•]\s*/g, ' ');
 
       // 3. Credentials grouping: wrap in parentheses following designation/credential/certifications keywords
       t = t.replace(
