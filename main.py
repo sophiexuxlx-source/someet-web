@@ -128,6 +128,7 @@ async def realtime_ws_endpoint(websocket: WebSocket):
     # Incremental sliding-window buffers (prevents O(n^2) computational explosion)
     committed_sentences: list[str] = []
     active_window_buffer = bytearray()
+    full_session_buffer = bytearray()
     current_interim_text = ""
     is_transcribing = False
     session_initial_prompt = ""
@@ -191,6 +192,7 @@ async def realtime_ws_endpoint(websocket: WebSocket):
             if "bytes" in message and message["bytes"]:
                 pcm_data = message["bytes"]
                 active_window_buffer.extend(pcm_data)
+                full_session_buffer.extend(pcm_data)
                 # Trigger incremental decode when threshold is reached
                 if not is_transcribing and len(active_window_buffer) >= MIN_CHUNK_BYTES:
                     asyncio.create_task(run_incremental_decode())
@@ -205,15 +207,24 @@ async def realtime_ws_endpoint(websocket: WebSocket):
                         while is_transcribing:
                             await asyncio.sleep(0.04)
 
-                        # Decode whatever residual audio remains in the active window
-                        if len(active_window_buffer) >= 3200:  # at least 100ms
+                        final_full_text = ""
+                        # Primary: seamless full session acoustic pass for unbroken sentence structure
+                        if len(full_session_buffer) >= 3200:
                             prompt = get_effective_prompt()
-                            final_slice_text = await asyncio.to_thread(transcribe_pcm, bytes(active_window_buffer), None, prompt)
-                            if final_slice_text.strip():
-                                committed_sentences.append(final_slice_text.strip())
+                            full_pass_text = await asyncio.to_thread(transcribe_pcm, bytes(full_session_buffer), None, prompt)
+                            if full_pass_text.strip():
+                                final_full_text = full_pass_text.strip()
 
-                        final_full_text = " ".join(committed_sentences).strip()
-                        print(f"[WS Stop] Final incremental transcript ({len(committed_sentences)} sentences): '{final_full_text}'")
+                        # Fallback to incremental committed sentences if full pass was empty
+                        if not final_full_text:
+                            if len(active_window_buffer) >= 3200:
+                                prompt = get_effective_prompt()
+                                final_slice_text = await asyncio.to_thread(transcribe_pcm, bytes(active_window_buffer), None, prompt)
+                                if final_slice_text.strip():
+                                    committed_sentences.append(final_slice_text.strip())
+                            final_full_text = " ".join(committed_sentences).strip()
+
+                        print(f"[WS Stop] Final session transcript: '{final_full_text}'")
 
                         if final_full_text:
                             await websocket.send_json({
@@ -229,11 +240,13 @@ async def realtime_ws_endpoint(websocket: WebSocket):
                         # Reset session buffers cleanly
                         committed_sentences.clear()
                         active_window_buffer.clear()
+                        full_session_buffer.clear()
                         current_interim_text = ""
 
                     elif msg_type == "start":
                         committed_sentences.clear()
                         active_window_buffer.clear()
+                        full_session_buffer.clear()
                         current_interim_text = ""
                         c_prompt = payload.get("context_prompt", "") or ""
                         c_terms = payload.get("terms", "") or ""

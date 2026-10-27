@@ -83,7 +83,7 @@ def transcribe_audio_base64(b64_audio: str, mime_type: str = "audio/wav", contex
     if not GEMINI_API_KEY:
         return ""
 
-    models_to_try = ["gemini-3.8-flash", "gemini-flash-lite-latest", "gemini-3.1-flash-lite"]
+    models_to_try = ["gemini-3.8-flash", "gemini-flash-latest", "gemini-flash-lite-latest", "gemini-2.5-flash"]
 
     prompt = (
         "You are an expert speech-to-text recognition engine. "
@@ -140,8 +140,11 @@ def polish_speech_transcript(raw_text: str, context_prompt: str = "", terms: str
     context_guidance = ""
     if context_prompt.strip():
         context_guidance += f"\nDomain Context:\n{context_prompt.strip()}\n"
-    if terms.strip():
-        context_guidance += f"\nPriority Terminology / Proper Nouns (ensure correct spelling and casing):\n{terms.strip()}\n"
+    
+    # Intrinsic product terms + user-supplied custom terms
+    base_terms = "SoMeet, AI Speech Studio, Sub-second, private beta"
+    effective_terms = f"{base_terms}, {terms.strip()}" if terms.strip() else base_terms
+    context_guidance += f"\nPriority Terminology / Proper Nouns (ensure correct spelling and casing):\n{effective_terms}\n"
 
     prompt = (
         "You are the speech intelligence and punctuation engine for SoMeet.\n"
@@ -150,7 +153,7 @@ def polish_speech_transcript(raw_text: str, context_prompt: str = "", terms: str
         f"{context_guidance}\n"
         "Tasks:\n"
         "1. Restore standard punctuation (commas, periods, question marks).\n"
-        "2. Fix obvious acoustic phonetic recognition slips (e.g., misheard technical jargon, brand names, or proper nouns) using the domain context and terminology provided above.\n"
+        "2. Fix obvious acoustic phonetic recognition slips (e.g., product names like 'Show me' or 'So meet' -> 'SoMeet', 'better sports' -> 'beta spots', 'Stop sucking' -> 'Sub-second', technical jargon, brand names, or proper nouns) using the domain context and terminology provided above.\n"
         "3. Preserve all words and sentences verbatim—do NOT summarize, truncate, or omit content.\n"
         "4. Output ONLY the clean, polished transcript text without any introductory commentary or quotes."
     )

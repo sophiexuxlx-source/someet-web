@@ -1599,6 +1599,7 @@
     }
 
     // Downsample raw browser audio buffer to 16kHz 16-bit PCM (Whisper native format)
+    // Uses linear interpolation to prevent aliasing and sample dropping across frame boundaries
     function downsampleTo16k(inputBuffer, inputSampleRate) {
       if (inputSampleRate === 16000) {
         const pcm = new Int16Array(inputBuffer.length);
@@ -1609,11 +1610,16 @@
         return pcm;
       }
       const ratio = inputSampleRate / 16000;
-      const newLength = Math.floor(inputBuffer.length / ratio);
+      const newLength = Math.round(inputBuffer.length / ratio);
       const pcm = new Int16Array(newLength);
       for (let i = 0; i < newLength; i++) {
-        let originalIdx = Math.floor(i * ratio);
-        let s = Math.max(-1, Math.min(1, inputBuffer[originalIdx]));
+        const pos = i * ratio;
+        const index = Math.floor(pos);
+        const frac = pos - index;
+        const s0 = inputBuffer[index] || 0;
+        const s1 = (index + 1 < inputBuffer.length) ? inputBuffer[index + 1] : s0;
+        const interpolated = s0 + frac * (s1 - s0);
+        let s = Math.max(-1, Math.min(1, interpolated));
         pcm[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
       }
       return pcm;
@@ -1720,14 +1726,19 @@
 
           sourceNode = audioContext.createMediaStreamSource(mediaStream);
 
+          let lastMicUiUpdate = 0;
           function handleRawAudioFrame(input) {
             if (!isRecording) return;
-            // Compute RMS volume level for live visual feedback
-            let sum = 0;
-            for (let i = 0; i < input.length; i++) sum += input[i] * input[i];
-            const rms = Math.sqrt(sum / input.length);
-            const levelPercent = Math.min(100, Math.round(rms * 450));
-            if (micLevel) micLevel.style.width = `${levelPercent}%`;
+            // Compute RMS volume level with ~30fps UI throttling to prevent main thread jank
+            const now = performance.now();
+            if (now - lastMicUiUpdate > 33) {
+              lastMicUiUpdate = now;
+              let sum = 0;
+              for (let i = 0; i < input.length; i++) sum += input[i] * input[i];
+              const rms = Math.sqrt(sum / input.length);
+              const levelPercent = Math.min(100, Math.round(rms * 450));
+              if (micLevel) micLevel.style.width = `${levelPercent}%`;
+            }
 
             // Downsample and stream PCM16 bytes
             const pcm16 = downsampleTo16k(input, audioContext.sampleRate);
@@ -1747,9 +1758,15 @@
                 handleRawAudioFrame(event.data);
               };
               sourceNode.connect(workletNode);
-              workletNode.connect(audioContext.destination);
+              // CRITICAL: NEVER connect microphone directly to speakers!
+              // Route through a zero-gain mute node to keep the audio graph clock ticking
+              // without playing mic audio out of speakers or triggering acoustic echo / AEC ducking.
+              const muteNode = audioContext.createGain();
+              muteNode.gain.value = 0;
+              workletNode.connect(muteNode);
+              muteNode.connect(audioContext.destination);
               usedAudioWorklet = true;
-              console.log("[Audio] Running on modern W3C AudioWorklet background thread");
+              console.log("[Audio] Running on modern W3C AudioWorklet background thread (isolated & muted)");
             } catch (workletErr) {
               console.warn("[AudioWorklet] Worklet failed to load, falling back to ScriptProcessor:", workletErr);
             }
@@ -1762,8 +1779,11 @@
               handleRawAudioFrame(event.inputBuffer.getChannelData(0));
             };
             sourceNode.connect(processorNode);
-            processorNode.connect(audioContext.destination);
-            console.log("[Audio] Running on ScriptProcessor fallback");
+            const muteNode = audioContext.createGain();
+            muteNode.gain.value = 0;
+            processorNode.connect(muteNode);
+            muteNode.connect(audioContext.destination);
+            console.log("[Audio] Running on ScriptProcessor fallback (muted)");
           }
 
           // 4. Primary Live Transcriber: Google Neural Speech Recognition (exact Antigravity engine)
