@@ -315,6 +315,21 @@
       max-height: 420px;
       overflow-y: auto;
       word-break: break-word;
+      padding: 10px 12px;
+      border-radius: 8px;
+      outline: none;
+      border: 1px solid transparent;
+      cursor: text;
+      transition: all 0.15s ease;
+    }
+    .transcript-body:hover:not(:focus) {
+      border-color: #E2E8F0;
+      background-color: #FAFCFE;
+    }
+    .transcript-body:focus {
+      border-color: #5B9BD5;
+      background-color: #FFFFFF;
+      box-shadow: 0 0 0 2.5px rgba(91, 155, 213, 0.2);
     }
     .placeholder-text {
       color: #94A3B8;
@@ -326,7 +341,21 @@
       font-size: 14px;
       line-height: 1.65;
       color: #334155;
-      padding-top: 8px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      outline: none;
+      border: 1px solid transparent;
+      cursor: text;
+      transition: all 0.15s ease;
+    }
+    .summary-content:hover:not(:focus) {
+      border-color: #E2E8F0;
+      background-color: #FAFCFE;
+    }
+    .summary-content:focus {
+      border-color: #5B9BD5;
+      background-color: #FFFFFF;
+      box-shadow: 0 0 0 2.5px rgba(91, 155, 213, 0.2);
     }
     .summary-content h3 {
       font-size: 15px;
@@ -596,7 +625,7 @@
     <div class="studio-card">
       <div class="card-header-row">
         <div class="card-header-title">
-          <span>🎙</span> Live Caption
+          <span>🎙</span> Live Caption <span style="font-size: 11px; color: #94A3B8; font-weight: 500; text-transform: none; margin-left: 8px;">(✏️ Click text to edit)</span>
         </div>
         <div class="action-btn-group">
           <button class="btn-action" onclick="copyTranscript()" title="Copy transcript to clipboard">
@@ -607,8 +636,8 @@
           </button>
         </div>
       </div>
-      <div class="transcript-body" id="transcriptText">
-        <span class="placeholder-text">Transcribed speech will appear here continuously in real time as you speak...</span>
+      <div class="transcript-body" id="transcriptText" contenteditable="true" spellcheck="true" title="Click anywhere to edit or type text directly">
+        <span class="placeholder-text">Transcribed speech will appear here continuously in real time as you speak... (Click text to edit anytime)</span>
       </div>
 
       <!-- Integrated Audio Play & Download Bar in the middle -->
@@ -628,7 +657,7 @@
     <div class="studio-card" id="summaryCard">
       <div class="card-header-row">
         <div class="card-header-title">
-          <span>✨</span> AI Speech Intelligence & Summary
+          <span>✨</span> AI Speech Intelligence & Summary <span style="font-size: 11px; color: #94A3B8; font-weight: 500; text-transform: none; margin-left: 8px;">(✏️ Click text to edit)</span>
         </div>
         <div class="action-btn-group">
           <button class="btn-action btn-summary" id="summarizeBtn" onclick="generateSummary()">
@@ -642,7 +671,7 @@
           </button>
         </div>
       </div>
-      <div class="summary-content" id="summaryText">
+      <div class="summary-content" id="summaryText" contenteditable="true" spellcheck="true" title="Click anywhere to edit summary directly">
         <span class="placeholder-text">Click "Generate Summary" after speaking to extract Key Points, Decisions, and Action Items.</span>
       </div>
     </div>
@@ -804,7 +833,26 @@
         console.warn("[Firebase] Init error:", err);
       }
     }
-    window.addEventListener('DOMContentLoaded', initFirebaseAuth);
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initFirebaseAuth();
+
+      // Enable direct in-place editing synchronization
+      const transcriptBox = document.getElementById('transcriptText');
+      if (transcriptBox) {
+        transcriptBox.addEventListener('input', (e) => {
+          accumulatedText = e.target.innerText.trim();
+          googleSpeechFinalText = accumulatedText;
+        });
+      }
+
+      const summaryBox = document.getElementById('summaryText');
+      if (summaryBox) {
+        summaryBox.addEventListener('input', (e) => {
+          meetingSummaryText = e.target.innerText.trim();
+        });
+      }
+    });
 
     function updateAuthUI(user) {
       const authBtn = document.getElementById('authBtn');
@@ -1111,10 +1159,8 @@
           }
         }
 
+        const rawText = accumulatedText.trim();
         const transcriptEl = document.getElementById('transcriptText');
-        if (accumulatedText && accumulatedText.trim()) {
-          transcriptEl.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${accumulatedText.trim()}</span>`;
-        }
 
         // Close realtime WS stream
         if (ws && ws.readyState === WebSocket.OPEN) {
@@ -1138,9 +1184,13 @@
           }
         }
 
-        // If Google Speech already produced clean text, complete immediately with zero lag!
-        // Only trigger server transcribe fallback if accumulatedText is empty
-        if (!accumulatedText.trim() && latestWavBlob) {
+        // Sub-second Gemini Smart Polish: delivers Antigravity-grade punctuation and phonetic accuracy
+        if (rawText) {
+          if (transcriptEl) {
+            transcriptEl.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${rawText}</span> <span style="color: #5B9BD5; font-size: 13px;">(✨ Polishing with AI...)</span>`;
+          }
+          polishWithGemini(rawText);
+        } else if (latestWavBlob) {
           if (transcriptEl) {
             transcriptEl.innerHTML = `<span style="color: #5B9BD5;">✨ Transcribing with AI...</span>`;
           }
@@ -1155,6 +1205,31 @@
             finishCleanup();
           }
         }, 15000);
+      }
+    }
+
+    async function polishWithGemini(rawText) {
+      try {
+        const resp = await fetch('/api/polish', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ transcript: rawText })
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.polished_transcript && data.polished_transcript.trim()) {
+            accumulatedText = data.polished_transcript.trim();
+            googleSpeechFinalText = accumulatedText;
+            const el = document.getElementById('transcriptText');
+            if (el) {
+              el.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${accumulatedText}</span>`;
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("[Polish error]", err);
+      } finally {
+        finishCleanup();
       }
     }
 

@@ -12,7 +12,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 from pathlib import Path
 from auth import get_current_user
-from asr_engine import transcribe_audio_base64, transcribe_pcm, summarize_meeting, get_whisper_model
+from asr_engine import transcribe_audio_base64, transcribe_pcm, summarize_meeting, get_whisper_model, polish_speech_transcript
 from config import BASE_DIR
 
 app = FastAPI(
@@ -32,6 +32,10 @@ class TranscribeRequest(BaseModel):
 
 
 class SummarizeRequest(BaseModel):
+    transcript: str
+
+
+class PolishRequest(BaseModel):
     transcript: str
 
 
@@ -218,6 +222,21 @@ async def summarize_endpoint(req: SummarizeRequest):
     return {
         "success": True,
         "summary": summary
+    }
+
+
+@app.post("/api/polish")
+async def polish_endpoint(req: PolishRequest):
+    """
+    Sub-second Gemini speech intelligence pass: restores punctuation, capitalization, and acoustic slips.
+    """
+    if not req.transcript.strip():
+        return {"success": True, "polished_transcript": ""}
+
+    polished = await asyncio.to_thread(polish_speech_transcript, req.transcript)
+    return {
+        "success": True,
+        "polished_transcript": polished
     }
 
 

@@ -121,6 +121,49 @@ def transcribe_audio_base64(b64_audio: str, mime_type: str = "audio/wav", contex
     return ""
 
 
+def polish_speech_transcript(raw_text: str) -> str:
+    """
+    Sub-second Gemini speech intelligence pass:
+    - Restores natural punctuation (commas, periods, question marks)
+    - Fixes phonetic acoustic slips (e.g. 'in any gravity' -> 'in Antigravity', 'Click record' -> 'click Record')
+    - Preserves user verbatim words and sentences
+    """
+    if not raw_text or not raw_text.strip():
+        return ""
+    if not GEMINI_API_KEY:
+        return raw_text
+
+    prompt = (
+        "You are the speech intelligence and punctuation engine for SoMeet.\n"
+        "Below is raw acoustic text recognized from a user microphone:\n"
+        f'"""{raw_text.strip()}"""\n\n'
+        "Tasks:\n"
+        "1. Restore standard punctuation (commas, periods, question marks).\n"
+        "2. Fix obvious acoustic phonetic recognition slips (e.g., 'in any gravity' -> 'in Antigravity', 'Click record' -> 'click Record', 'never see' -> 'now see', 'queen. Stim' -> 'clean stream') based on natural conversational English.\n"
+        "3. Preserve all words and sentences verbatim—do NOT summarize, truncate, or omit content.\n"
+        "4. Output ONLY the clean, polished transcript text without any introductory commentary or quotes."
+    )
+
+    models_to_try = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite"]
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"temperature": 0.0}
+    }
+
+    for model in models_to_try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={GEMINI_API_KEY}"
+        try:
+            resp = requests.post(url, json=payload, timeout=8)
+            if resp.status_code == 200:
+                text = resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
+                return text.strip('"\'')
+        except Exception as e:
+            print(f"[Speech Polish Error with {model}]: {e}")
+            continue
+
+    return raw_text
+
+
 def summarize_meeting(transcript: str) -> str:
     """
     Uses Google Gemini to generate structured meeting intelligence:
