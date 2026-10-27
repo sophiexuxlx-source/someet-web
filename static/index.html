@@ -562,7 +562,7 @@
     <div class="studio-card">
       <div class="card-header-row">
         <div class="card-header-title">
-          <span>🎙</span> Live Caption <span style="font-size: 11px; color: #94A3B8; font-weight: 500; text-transform: none; margin-left: 8px;">(✏️ Click to edit when done)</span>
+          Live Caption <span style="font-size: 11px; color: #94A3B8; font-weight: 500; text-transform: none; margin-left: 8px;">(Click to edit when done)</span>
         </div>
         <div class="action-btn-group">
           <button class="btn-action" onclick="copyTranscript()" title="Copy transcript to clipboard">Copy</button>
@@ -576,7 +576,6 @@
       <!-- Integrated Audio Play & Download Bar in the middle -->
       <div id="audioBarContainer" style="margin-top: 18px; padding: 10px 14px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
         <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #475569; white-space: nowrap;">
-          <span>🎧</span>
           <span>Audio Playback:</span>
         </div>
         <audio id="audioPlayer" controls style="flex: 1; min-width: 220px; height: 36px; border-radius: 6px;"></audio>
@@ -588,7 +587,7 @@
     <div class="studio-card" id="summaryCard">
       <div class="card-header-row">
         <div class="card-header-title">
-          <span>✨</span> Speech Summary <span style="font-size: 11px; color: #94A3B8; font-weight: 500; text-transform: none; margin-left: 8px;">(✏️ Click to edit when done)</span>
+          Speech Summary <span style="font-size: 11px; color: #94A3B8; font-weight: 500; text-transform: none; margin-left: 8px;">(Click to edit when done)</span>
         </div>
         <div class="action-btn-group">
           <button class="btn-action btn-summary" id="summarizeBtn" onclick="generateSummary()">Generate Summary</button>
@@ -1037,7 +1036,7 @@
             transcriptEl.setAttribute('contenteditable', 'false');
           }
           if (!accumulatedText) {
-            transcriptEl.innerHTML = `<span style="color: #64748B;">🎙 Listening and streaming speech...</span>`;
+            transcriptEl.innerHTML = `<span style="color: #64748B;">Listening and streaming speech...</span>`;
           }
 
           elapsedSeconds = 0;
@@ -1103,12 +1102,12 @@
         // Sub-second Gemini Smart Polish: delivers Antigravity-grade punctuation and phonetic accuracy
         if (rawText) {
           if (transcriptEl) {
-            transcriptEl.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${rawText}</span> <span style="color: #5B9BD5; font-size: 13px;">(✨ Polishing with AI...)</span>`;
+            transcriptEl.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${rawText}</span> <span style="color: #5B9BD5; font-size: 13px;">(Polishing...)</span>`;
           }
           polishWithGemini(rawText);
         } else if (latestWavBlob) {
           if (transcriptEl) {
-            transcriptEl.innerHTML = `<span style="color: #5B9BD5;">✨ Transcribing with AI...</span>`;
+            transcriptEl.innerHTML = `<span style="color: #5B9BD5;">Transcribing...</span>`;
           }
           refineWithGemini(latestWavBlob);
         } else {
@@ -1327,7 +1326,7 @@
         return;
       }
       navigator.clipboard.writeText(accumulatedText).then(() => {
-        alert("📋 Transcript copied to clipboard!");
+        alert("Transcript copied to clipboard!");
       }).catch(err => {
         alert("Could not copy text: " + err);
       });
@@ -1339,7 +1338,7 @@
         return;
       }
       navigator.clipboard.writeText(meetingSummaryText).then(() => {
-        alert("📋 Summary copied to clipboard!");
+        alert("Summary copied to clipboard!");
       }).catch(err => {
         alert("Could not copy summary: " + err);
       });
