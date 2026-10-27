@@ -685,7 +685,6 @@
           <span>✨</span> New Session
         </button>
       </div>
-      <div class="shortcut-hint" style="margin-top: 12px;">Spacebar starts and stops recording as well.</div>
     </div>
   </main>
 
@@ -1391,14 +1390,6 @@
         sumEl.setAttribute('contenteditable', 'true');
       }
     }
-
-    // Spacebar shortcut
-    window.addEventListener('keydown', (e) => {
-      if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-        e.preventDefault();
-        toggleRecording();
-      }
-    });
 
     function copyTranscript() {
       if (!accumulatedText) {
