@@ -338,109 +338,120 @@
       gap: 12px;
       margin-top: 8px;
     }
+    /* Big Record Button & SoMeet Mascot */
+    .controls-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
     .btn-record {
-      width: 58px;
-      height: 58px;
-      background: linear-gradient(135deg, #B59E9A 0%, #A58E8A 100%);
-      color: white;
-      border: none;
+      width: 78px;
+      height: 78px;
       border-radius: 50%;
+      border: 3px solid #D5C7C4;
+      background: #FFFFFF;
+      padding: 3px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: 0 4px 18px rgba(165, 142, 138, 0.38);
       position: relative;
       outline: none;
+      box-shadow: 0 6px 20px rgba(165, 142, 138, 0.28);
+      transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .btn-record:hover {
-      background: linear-gradient(135deg, #A58E8A 0%, #8E7571 100%);
       transform: scale(1.08);
-      box-shadow: 0 8px 24px rgba(142, 117, 113, 0.45);
+      border-color: #A58E8A;
+      box-shadow: 0 10px 28px rgba(142, 117, 113, 0.38);
     }
-    .btn-record .mic-icon {
-      width: 24px;
-      height: 24px;
+    .btn-record:active {
+      transform: scale(0.96);
+    }
+    .mascot-avatar-wrap {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: transform 0.2s;
+      background: #F4EBE8;
     }
-    .btn-record .mic-icon svg {
-      width: 24px;
-      height: 24px;
-      stroke: #FFFFFF;
-      fill: none;
+    .mascot-avatar-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.3s ease;
     }
-    .btn-record .sound-wave-icon {
-      display: none;
-      align-items: center;
-      justify-content: center;
-      gap: 3.5px;
-      height: 20px;
+    .btn-record:hover .mascot-avatar-wrap img {
+      transform: scale(1.05);
     }
-    .btn-record .sound-wave-icon .wave-bar {
-      width: 3.5px;
-      background: #FFFFFF;
-      border-radius: 3px;
-      display: inline-block;
+    /* Pulsing status dot on mascot */
+    .mascot-status-dot {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: #10B981;
+      border: 2.5px solid #FFFFFF;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      transition: all 0.3s ease;
+      z-index: 2;
     }
     .btn-record.recording {
-      background: #D9534F;
-      box-shadow: 0 0 0 6px rgba(217, 83, 79, 0.25), 0 8px 24px rgba(217, 83, 79, 0.45);
+      border-color: #D9534F;
+      box-shadow: 0 0 0 6px rgba(217, 83, 79, 0.25), 0 8px 26px rgba(217, 83, 79, 0.45);
       animation: recordRingPulse 1.8s infinite;
     }
-    .btn-record.recording .mic-icon {
-      display: none;
+    .btn-record.recording .mascot-status-dot {
+      background: #D9534F;
+      box-shadow: 0 0 0 4px rgba(217, 83, 79, 0.35);
+      animation: dotPulse 1.2s infinite;
     }
-    .btn-record.recording .sound-wave-icon {
-      display: flex;
-    }
-    .btn-record.recording .wave-bar.bar-1 {
-      height: 10px;
-      animation: soundWaveAnim1 0.75s ease-in-out infinite alternate;
-    }
-    .btn-record.recording .wave-bar.bar-2 {
-      height: 18px;
-      animation: soundWaveAnim2 0.75s ease-in-out infinite alternate 0.2s;
-    }
-    .btn-record.recording .wave-bar.bar-3 {
-      height: 10px;
-      animation: soundWaveAnim3 0.75s ease-in-out infinite alternate 0.4s;
-    }
-    @keyframes soundWaveAnim1 {
-      0% { height: 6px; }
-      100% { height: 16px; }
-    }
-    @keyframes soundWaveAnim2 {
-      0% { height: 18px; }
-      100% { height: 8px; }
-    }
-    @keyframes soundWaveAnim3 {
-      0% { height: 8px; }
-      100% { height: 18px; }
+    @keyframes dotPulse {
+      0% { transform: scale(0.9); opacity: 0.85; }
+      50% { transform: scale(1.25); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.85; }
     }
     @keyframes recordRingPulse {
       0% {
         box-shadow: 0 0 0 0 rgba(217, 83, 79, 0.45), 0 8px 24px rgba(217, 83, 79, 0.4);
       }
       70% {
-        box-shadow: 0 0 0 12px rgba(217, 83, 79, 0), 0 8px 24px rgba(217, 83, 79, 0.4);
+        box-shadow: 0 0 0 14px rgba(217, 83, 79, 0), 0 8px 24px rgba(217, 83, 79, 0.4);
       }
       100% {
         box-shadow: 0 0 0 0 rgba(217, 83, 79, 0), 0 8px 24px rgba(217, 83, 79, 0.4);
       }
     }
     .btn-record.processing {
-      background: #A58E8A;
-      opacity: 0.85;
+      border-color: #A58E8A;
+      opacity: 0.88;
       cursor: wait;
       animation: pulseProcessing 1s infinite alternate;
     }
     @keyframes pulseProcessing {
-      0% { transform: scale(0.96); }
-      100% { transform: scale(1.04); }
+      0% { transform: scale(0.97); }
+      100% { transform: scale(1.03); }
+    }
+    .mascot-hint {
+      font-size: 13px;
+      font-weight: 500;
+      color: #7A6966;
+      margin-top: 4px;
+      letter-spacing: 0.1px;
+      transition: color 0.2s;
+    }
+    .btn-record.recording ~ .mascot-hint,
+    .controls-container:has(.btn-record.recording) .mascot-hint {
+      color: #D9534F;
+      font-weight: 600;
     }
     .shortcut-hint {
       font-size: 12px;
@@ -916,23 +927,16 @@
       </div>
     </div>
 
-    <!-- Record Button & Controls (Antigravity Style) -->
+    <!-- Record Button & Mascot Controls -->
     <div class="controls-container">
-      <button class="btn-record" id="recordBtn" onclick="toggleRecording()" title="Click to start recording" aria-label="Microphone Record">
-        <div class="mic-icon" id="micIcon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-            <line x1="12" x2="12" y1="19" y2="22"/>
-          </svg>
+      <button class="btn-record" id="recordBtn" onclick="toggleRecording()" title="Click to speak with SoMeet" aria-label="SoMeet Mascot Record Button">
+        <div class="mascot-avatar-wrap">
+          <img src="/static/mascot_avatar.jpg" alt="SoMeet Companion Mascot" id="mascotAvatarImg" />
         </div>
-        <div class="sound-wave-icon" id="soundWaveIcon">
-          <span class="wave-bar bar-1"></span>
-          <span class="wave-bar bar-2"></span>
-          <span class="wave-bar bar-3"></span>
-        </div>
+        <div class="mascot-status-dot" id="mascotStatusDot" title="Ready to listen"></div>
       </button>
-      <div style="display: flex; gap: 16px; justify-content: center; margin-top: 14px; align-items: center;">
+      <div class="mascot-hint" id="mascotHint">Click to speak</div>
+      <div style="display: flex; gap: 16px; justify-content: center; margin-top: 10px; align-items: center;">
         <button onclick="openAdvancedModal()" style="background: none; border: none; font-size: 13px; color: #7A6966; cursor: pointer; font-weight: 500; padding: 2px 6px; text-decoration: underline; text-underline-offset: 3px;">Speech Settings</button>
         <span style="color: #B59E9A; font-size: 12px;">•</span>
         <button onclick="openPrivacyModal()" style="background: none; border: none; font-size: 13px; color: #7A6966; cursor: pointer; font-weight: 500; padding: 2px 6px; text-decoration: underline; text-underline-offset: 3px;">Privacy Note</button>
@@ -1815,7 +1819,9 @@
           isRecording = true;
           if (micIndicator) micIndicator.style.display = 'flex';
           btn.classList.add('recording');
-          btn.title = "Recording... Click to stop";
+          btn.title = "Listening... Click mascot to finish";
+          const mascotHint = document.getElementById('mascotHint');
+          if (mascotHint) mascotHint.innerText = "Listening... click to finish";
           if (btnText) btnText.innerText = "Stop";
 
           const transcriptEl = document.getElementById('transcriptText');
@@ -1878,6 +1884,8 @@
         btn.classList.remove('recording');
         btn.classList.add('processing');
         btn.title = "Processing speech...";
+        const mascotHint = document.getElementById('mascotHint');
+        if (mascotHint) mascotHint.innerText = "Analyzing speech...";
         if (btnText) btnText.innerText = "Processing...";
         if (micIndicator) micIndicator.style.display = 'none';
         if (micLevel) micLevel.style.width = '0%';
@@ -2036,8 +2044,16 @@
         btn.title = "Click to start recording";
       }
       const btnText = document.getElementById('btnText');
+      const mascotHint = document.getElementById('mascotHint');
       const email = (currentUser && currentUser.email || "").toLowerCase();
       const isUnlimited = userTierInfo.is_unlimited || LIFETIME_UNLIMITED_EMAILS.includes(email);
+      if (mascotHint) {
+        if (currentUser && !isUnlimited && userTierInfo.remaining_seconds <= 0) {
+          mascotHint.innerText = "1 hr quota reached • Contact founder";
+        } else {
+          mascotHint.innerText = "Click to speak";
+        }
+      }
       if (btnText) {
         if (currentUser && !isUnlimited && userTierInfo.remaining_seconds <= 0) {
           btnText.innerText = "Limit Reached";
@@ -2492,8 +2508,10 @@
       // 6. Reset Record Button UI
       const btn = document.getElementById('recordBtn');
       const btnText = document.getElementById('btnText');
+      const mascotHint = document.getElementById('mascotHint');
       if (btn) btn.classList.remove('recording');
       if (btnText) btnText.innerText = "Record";
+      if (mascotHint) mascotHint.innerText = "Click to speak";
     }
 
     function handleAuth() {
