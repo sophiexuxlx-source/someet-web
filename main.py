@@ -114,9 +114,9 @@ async def request_capacity_endpoint(req: CapacityRequestModel, user: dict = Depe
 @app.websocket("/api/realtime/ws")
 async def realtime_ws_endpoint(websocket: WebSocket):
     """
-    Bidirectional real-time audio streaming endpoint.
-    Receives raw 16kHz 16-bit PCM binary audio frames from browser Web Audio API.
-    Streams back transcript deltas cleanly without queuing latency.
+    Bidirectional real-time audio streaming endpoint with incremental O(1) sliding-window decoding.
+    Receives raw 16kHz 16-bit PCM binary audio frames from browser Web Audio API / AudioWorklet.
+    Streams back transcript deltas incrementally without re-transcribing historical audio.
     """
     await websocket.accept()
     await websocket.send_json({
@@ -125,31 +125,63 @@ async def realtime_ws_endpoint(websocket: WebSocket):
         "message": "Connected to real-time acoustic engine"
     })
 
-    pcm_buffer = bytearray()
-    last_transcribed_text = ""
+    # Incremental sliding-window buffers (prevents O(n^2) computational explosion)
+    committed_sentences: list[str] = []
+    active_window_buffer = bytearray()
+    current_interim_text = ""
     is_transcribing = False
-    last_transcribe_len = 0
     session_initial_prompt = ""
-    # Transcribe when we accumulate at least 1.5 seconds of new audio (48000 bytes)
-    MIN_CHUNK_BYTES = 48000
 
-    async def run_live_decode():
-        nonlocal is_transcribing, last_transcribed_text, last_transcribe_len
-        if is_transcribing or len(pcm_buffer) - last_transcribe_len < MIN_CHUNK_BYTES:
+    # Decode trigger: 1.5 seconds of new audio (48,000 bytes at 16kHz 16-bit mono)
+    MIN_CHUNK_BYTES = 48000
+    # Window cap: 6 seconds of audio (192,000 bytes). If buffer reaches this, commit and slide.
+    MAX_WINDOW_BYTES = 192000
+    # Overlap tail: 0.3s (9,600 bytes) preserved when sliding to avoid clipping phonemes across window boundary
+    OVERLAP_BYTES = 9600
+
+    def get_effective_prompt() -> str:
+        recent_context = " ".join(committed_sentences[-3:]) if committed_sentences else ""
+        if session_initial_prompt and recent_context:
+            return f"{session_initial_prompt}. Context: {recent_context}"[-300:]
+        return (session_initial_prompt or recent_context)[-300:]
+
+    async def run_incremental_decode():
+        nonlocal is_transcribing, current_interim_text
+        if is_transcribing or len(active_window_buffer) < MIN_CHUNK_BYTES:
             return
         is_transcribing = True
         try:
-            snapshot = bytes(pcm_buffer)
-            last_transcribe_len = len(snapshot)
-            text = await asyncio.to_thread(transcribe_pcm, snapshot, None, session_initial_prompt)
-            if text and text != last_transcribed_text:
-                last_transcribed_text = text
-                await websocket.send_json({
-                    "type": "transcript_delta",
-                    "text": text
-                })
+            snapshot = bytes(active_window_buffer)
+            prompt = get_effective_prompt()
+            text = await asyncio.to_thread(transcribe_pcm, snapshot, None, prompt)
+            clean_text = text.strip()
+
+            if clean_text:
+                current_interim_text = clean_text
+                # If decoded text ends with sentence boundary (. ? !) or buffer exceeds MAX_WINDOW_BYTES
+                is_sentence_end = clean_text[-1] in {'.', '?', '!', '。', '？', '！'}
+                if is_sentence_end or len(active_window_buffer) >= MAX_WINDOW_BYTES:
+                    committed_sentences.append(clean_text)
+                    current_interim_text = ""
+                    # Slide window forward, keeping a tiny overlap to protect phonemes
+                    if len(active_window_buffer) > OVERLAP_BYTES:
+                        tail = active_window_buffer[-OVERLAP_BYTES:]
+                        active_window_buffer.clear()
+                        active_window_buffer.extend(tail)
+                    else:
+                        active_window_buffer.clear()
+
+                # Build full cumulative transcript to stream back to client
+                full_parts = committed_sentences + ([current_interim_text] if current_interim_text else [])
+                cumulative_text = " ".join(part for part in full_parts if part).strip()
+
+                if cumulative_text:
+                    await websocket.send_json({
+                        "type": "transcript_delta",
+                        "text": cumulative_text
+                    })
         except Exception as e:
-            print(f"[WS Decode Error] {e}")
+            print(f"[WS Incremental Decode Error] {e}")
         finally:
             is_transcribing = False
 
@@ -158,10 +190,10 @@ async def realtime_ws_endpoint(websocket: WebSocket):
             message = await websocket.receive()
             if "bytes" in message and message["bytes"]:
                 pcm_data = message["bytes"]
-                pcm_buffer.extend(pcm_data)
-                # Periodically trigger background transcription
-                if not is_transcribing and (len(pcm_buffer) - last_transcribe_len) >= MIN_CHUNK_BYTES:
-                    asyncio.create_task(run_live_decode())
+                active_window_buffer.extend(pcm_data)
+                # Trigger incremental decode when threshold is reached
+                if not is_transcribing and len(active_window_buffer) >= MIN_CHUNK_BYTES:
+                    asyncio.create_task(run_incremental_decode())
 
             elif "text" in message and message["text"]:
                 import json
@@ -169,37 +201,40 @@ async def realtime_ws_endpoint(websocket: WebSocket):
                     payload = json.loads(message["text"])
                     msg_type = payload.get("type")
                     if msg_type in ("commit", "stop"):
-                        # Wait for any in-flight decode to finish, then decode final audio
+                        # Wait for any in-flight incremental decode to finish
                         while is_transcribing:
-                            await asyncio.sleep(0.05)
-                        
-                        final_text = ""
-                        if len(pcm_buffer) >= 3200: # at least 100ms
-                            print(f"[WS Stop] Final decoding of {len(pcm_buffer)} audio bytes...")
-                            final_text = await asyncio.to_thread(transcribe_pcm, bytes(pcm_buffer), None, session_initial_prompt)
-                            print(f"[WS Stop] Final transcribed text: '{final_text}'")
+                            await asyncio.sleep(0.04)
 
-                        if len(final_text) < len(last_transcribed_text):
-                            final_text = last_transcribed_text
-                            print(f"[WS Stop] Using last_transcribed_text (longer): '{final_text}'")
+                        # Decode whatever residual audio remains in the active window
+                        if len(active_window_buffer) >= 3200:  # at least 100ms
+                            prompt = get_effective_prompt()
+                            final_slice_text = await asyncio.to_thread(transcribe_pcm, bytes(active_window_buffer), None, prompt)
+                            if final_slice_text.strip():
+                                committed_sentences.append(final_slice_text.strip())
 
-                        if final_text:
+                        final_full_text = " ".join(committed_sentences).strip()
+                        print(f"[WS Stop] Final incremental transcript ({len(committed_sentences)} sentences): '{final_full_text}'")
+
+                        if final_full_text:
                             await websocket.send_json({
                                 "type": "transcript_completed",
-                                "text": final_text
+                                "text": final_full_text
                             })
-                        
+
                         await websocket.send_json({
                             "type": "turn_completed",
-                            "text": final_text
+                            "text": final_full_text
                         })
-                        pcm_buffer.clear()
-                        last_transcribe_len = 0
-                        last_transcribed_text = ""
+
+                        # Reset session buffers cleanly
+                        committed_sentences.clear()
+                        active_window_buffer.clear()
+                        current_interim_text = ""
+
                     elif msg_type == "start":
-                        pcm_buffer.clear()
-                        last_transcribe_len = 0
-                        last_transcribed_text = ""
+                        committed_sentences.clear()
+                        active_window_buffer.clear()
+                        current_interim_text = ""
                         c_prompt = payload.get("context_prompt", "") or ""
                         c_terms = payload.get("terms", "") or ""
                         session_initial_prompt = f"{c_prompt} {c_terms}".strip()

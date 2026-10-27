@@ -1133,6 +1133,7 @@
     let audioContext = null;
     let mediaStream = null;
     let processorNode = null;
+    let workletNode = null;
     let sourceNode = null;
     let mediaRecorder = null;
     let recordedChunks = [];
@@ -1710,7 +1711,7 @@
             console.error("[WS Error]", err);
           };
 
-          // 3. Initialize AudioContext and FORCE RESUME (critical for Chrome/Edge)
+          // 3. Initialize AudioContext and modern AudioWorklet (runs off main UI thread with fallback)
           const AudioContextClass = window.AudioContext || window.webkitAudioContext;
           audioContext = new AudioContextClass();
           if (audioContext.state === 'suspended') {
@@ -1718,13 +1719,9 @@
           }
 
           sourceNode = audioContext.createMediaStreamSource(mediaStream);
-          // 4096 frames gives ~90ms latency
-          processorNode = audioContext.createScriptProcessor(4096, 1, 1);
 
-          processorNode.onaudioprocess = (event) => {
+          function handleRawAudioFrame(input) {
             if (!isRecording) return;
-            const input = event.inputBuffer.getChannelData(0);
-
             // Compute RMS volume level for live visual feedback
             let sum = 0;
             for (let i = 0; i < input.length; i++) sum += input[i] * input[i];
@@ -1739,10 +1736,35 @@
             if (ws && ws.readyState === WebSocket.OPEN) {
               ws.send(pcm16.buffer);
             }
-          };
+          }
 
-          sourceNode.connect(processorNode);
-          processorNode.connect(audioContext.destination);
+          let usedAudioWorklet = false;
+          if (audioContext.audioWorklet) {
+            try {
+              await audioContext.audioWorklet.addModule('/static/audio_worklet_processor.js');
+              workletNode = new AudioWorkletNode(audioContext, 'pcm-worklet-processor');
+              workletNode.port.onmessage = (event) => {
+                handleRawAudioFrame(event.data);
+              };
+              sourceNode.connect(workletNode);
+              workletNode.connect(audioContext.destination);
+              usedAudioWorklet = true;
+              console.log("[Audio] Running on modern W3C AudioWorklet background thread");
+            } catch (workletErr) {
+              console.warn("[AudioWorklet] Worklet failed to load, falling back to ScriptProcessor:", workletErr);
+            }
+          }
+
+          if (!usedAudioWorklet) {
+            // Graceful fallback for environments where AudioWorklet is unavailable
+            processorNode = audioContext.createScriptProcessor(4096, 1, 1);
+            processorNode.onaudioprocess = (event) => {
+              handleRawAudioFrame(event.inputBuffer.getChannelData(0));
+            };
+            sourceNode.connect(processorNode);
+            processorNode.connect(audioContext.destination);
+            console.log("[Audio] Running on ScriptProcessor fallback");
+          }
 
           // 4. Primary Live Transcriber: Google Neural Speech Recognition (exact Antigravity engine)
           if (hasGoogleSpeech) {
@@ -2049,6 +2071,13 @@
       if (ws) {
         try { ws.close(); } catch(e) {}
         ws = null;
+      }
+      if (workletNode) {
+        try {
+          workletNode.disconnect();
+          if (workletNode.port) workletNode.port.onmessage = null;
+        } catch(e) {}
+        workletNode = null;
       }
       if (processorNode) {
         try { processorNode.disconnect(); } catch(e) {}
