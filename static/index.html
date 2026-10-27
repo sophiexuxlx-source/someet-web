@@ -1957,10 +1957,17 @@
           }
         }
 
-        // Direct Verbatim Antigravity Engine:
-        // Google Neural Web Speech API produces pristine punctuation, casing, and word accuracy.
-        // Keep transcript 100% faithful and verbatim with zero LLM alterations or hallucinations.
-        if (rawText) {
+        // Antigravity-Grade Dual Pipeline:
+        // 1. Immediately display live Web Speech caption as preliminary transcript
+        // 2. Refine with Gemini 3.5 Transcribe from the pristine recorded WAV audio for 100% Antigravity accuracy
+        if (latestWavBlob && allPcmChunks.length > 0) {
+          if (transcriptEl && rawText) {
+            transcriptEl.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${rawText}</span> <span style="color: #A58E8A; font-size: 13px;">(Gemini audio refinement...)</span>`;
+          } else if (transcriptEl) {
+            transcriptEl.innerHTML = `<span style="color: #A58E8A;">Transcribing audio with Gemini...</span>`;
+          }
+          refineWithGemini(latestWavBlob, rawText);
+        } else if (rawText) {
           const cleanVerbatim = rawText
             .replace(/\bso\s*meet\b/gi, 'SoMeet')
             .replace(/\bcpa\b/gi, 'CPA');
@@ -1971,11 +1978,6 @@
             transcriptEl.setAttribute('contenteditable', 'true');
           }
           finishCleanup();
-        } else if (latestWavBlob) {
-          if (transcriptEl) {
-            transcriptEl.innerHTML = `<span style="color: #A58E8A;">Transcribing...</span>`;
-          }
-          refineWithGemini(latestWavBlob);
         } else {
           finishCleanup();
         }
@@ -2020,8 +2022,13 @@
       }
     }
 
-    async function refineWithGemini(audioBlob) {
+    async function refineWithGemini(audioBlob, fallbackText) {
       if (!audioBlob || audioBlob.size < 500) {
+        if (fallbackText) {
+          accumulatedText = fallbackText;
+          const el = document.getElementById('transcriptText');
+          if (el) el.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${accumulatedText}</span>`;
+        }
         finishCleanup();
         return;
       }
@@ -2038,34 +2045,59 @@
               headers['Authorization'] = `Bearer ${firebaseIdToken}`;
             }
 
+            const cPrompt = localStorage.getItem('someet_context_prompt') || '';
+            const cTerms = localStorage.getItem('someet_terms') || '';
+
             const resp = await fetch('/api/transcribe', {
               method: 'POST',
               headers: headers,
               body: JSON.stringify({
                 audio_base64: base64Audio,
-                mime_type: mimeType
+                mime_type: mimeType,
+                context: `${cPrompt} ${cTerms}`.trim()
               })
             });
 
             if (resp.ok) {
               const data = await resp.json();
               if (data.transcript && data.transcript.trim()) {
-                console.log("[AI Transcribe] Full-fidelity transcript:", data.transcript);
+                console.log("[Gemini 3.5 Transcribe] Pristine transcript:", data.transcript);
                 accumulatedText = data.transcript.trim();
+                googleSpeechFinalText = accumulatedText;
                 liveStreamingText = "";
                 const el = document.getElementById('transcriptText');
-                el.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${accumulatedText}</span>`;
-                el.scrollTop = el.scrollHeight;
+                if (el) {
+                  el.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${accumulatedText}</span>`;
+                  el.scrollTop = el.scrollHeight;
+                }
+              } else if (fallbackText) {
+                accumulatedText = fallbackText;
+                const el = document.getElementById('transcriptText');
+                if (el) el.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${accumulatedText}</span>`;
               }
+            } else if (fallbackText) {
+              accumulatedText = fallbackText;
+              const el = document.getElementById('transcriptText');
+              if (el) el.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${accumulatedText}</span>`;
             }
           } catch (err) {
             console.error("Transcribe error:", err);
+            if (fallbackText) {
+              accumulatedText = fallbackText;
+              const el = document.getElementById('transcriptText');
+              if (el) el.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${accumulatedText}</span>`;
+            }
           } finally {
             finishCleanup();
           }
         };
       } catch (err) {
         console.error("FileReader error:", err);
+        if (fallbackText) {
+          accumulatedText = fallbackText;
+          const el = document.getElementById('transcriptText');
+          if (el) el.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${accumulatedText}</span>`;
+        }
         finishCleanup();
       }
     }
