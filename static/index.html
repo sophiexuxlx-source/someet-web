@@ -1957,18 +1957,11 @@
           }
         }
 
-        // Antigravity-Grade Dual Pipeline:
-        // 1. Immediately display live Web Speech caption as preliminary transcript with smart typography
-        // 2. Refine with Gemini 3.5 Transcribe from the pristine recorded WAV audio for 100% Antigravity accuracy
+        // Instantaneous Antigravity-Grade Finalization (0ms lag):
+        // 1. Instantly display and commit the live finalized transcript with smart typography
+        // 2. Zero server upload latency - finishes immediately upon clicking Stop
         const cleanPreview = formatSmartTypography(rawText);
-        if (latestWavBlob && allPcmChunks.length > 0) {
-          if (transcriptEl && cleanPreview) {
-            transcriptEl.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${cleanPreview}</span> <span style="color: #A58E8A; font-size: 13px;">(Gemini audio refinement...)</span>`;
-          } else if (transcriptEl) {
-            transcriptEl.innerHTML = `<span style="color: #A58E8A;">Transcribing audio with Gemini...</span>`;
-          }
-          refineWithGemini(latestWavBlob, cleanPreview);
-        } else if (cleanPreview) {
+        if (cleanPreview) {
           accumulatedText = cleanPreview;
           googleSpeechFinalText = cleanPreview;
           if (transcriptEl) {
@@ -1976,6 +1969,12 @@
             transcriptEl.setAttribute('contenteditable', 'true');
           }
           finishCleanup();
+        } else if (latestWavBlob && allPcmChunks.length > 0) {
+          // Fallback only when Web Speech is unavailable (Firefox/Safari) and rawText is empty
+          if (transcriptEl) {
+            transcriptEl.innerHTML = `<span style="color: #A58E8A;">Transcribing audio with Gemini...</span>`;
+          }
+          refineWithGemini(latestWavBlob, "");
         } else {
           finishCleanup();
         }
