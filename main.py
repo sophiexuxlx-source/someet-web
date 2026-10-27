@@ -111,6 +111,30 @@ async def request_capacity_endpoint(req: CapacityRequestModel, user: dict = Depe
     return save_capacity_request(uid, email, req.message)
 
 
+@app.get("/api/admin/requests")
+async def get_admin_requests_endpoint(user: dict = Depends(get_current_user)):
+    """Protected admin endpoint: returns all tester requests."""
+    email = (user.get("email") or "").lower()
+    if not (user.get("is_unlimited") or email == "sophiexuxlx@gmail.com"):
+        raise HTTPException(status_code=403, detail="Founder access required")
+    from usage_service import get_all_capacity_requests
+    return {
+        "success": True,
+        "requests": get_all_capacity_requests()
+    }
+
+
+@app.delete("/api/admin/requests")
+async def delete_admin_request_endpoint(timestamp: str, user: dict = Depends(get_current_user)):
+    """Protected admin endpoint: deletes a processed tester request."""
+    email = (user.get("email") or "").lower()
+    if not (user.get("is_unlimited") or email == "sophiexuxlx@gmail.com"):
+        raise HTTPException(status_code=403, detail="Founder access required")
+    from usage_service import delete_capacity_request
+    return delete_capacity_request(timestamp)
+
+
+
 @app.websocket("/api/realtime/ws")
 async def realtime_ws_endpoint(websocket: WebSocket):
     """

@@ -270,3 +270,22 @@ def save_capacity_request(uid: str, email: str, message: str) -> dict:
         "admin_contact": ADMIN_CONTACT_EMAIL,
         "linkedin_url": LINKEDIN_URL
     }
+
+
+def get_all_capacity_requests() -> list:
+    """Returns all tester requests, sorted newest first."""
+    with _lock:
+        data = _load_json(REQUESTS_FILE)
+        reqs = data.get("requests", [])
+        return sorted(reqs, key=lambda x: x.get("timestamp", ""), reverse=True)
+
+
+def delete_capacity_request(timestamp: str) -> dict:
+    """Removes a processed tester request by timestamp."""
+    with _lock:
+        data = _load_json(REQUESTS_FILE)
+        reqs = data.get("requests", [])
+        data["requests"] = [r for r in reqs if r.get("timestamp") != timestamp]
+        _save_json(REQUESTS_FILE, data)
+    return {"success": True}
+

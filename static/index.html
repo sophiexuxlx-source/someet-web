@@ -1082,20 +1082,16 @@
         </div>
       </div>
 
-      <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
-        <a id="capLinkedInLink" href="https://www.linkedin.com/in/sophie-xu-cpa/" target="_blank" rel="noopener noreferrer" style="flex: 1; min-width: 170px; text-align: center; text-decoration: none; background: #0A66C2; color: #FFFFFF; font-weight: 600; font-size: 13.5px; padding: 11px 16px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 2px 6px rgba(10,102,194,0.25);">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+      <!-- Contact Method #1: LinkedIn DM -->
+      <div style="margin-bottom: 18px;">
+        <a id="capLinkedInLink" href="https://www.linkedin.com/in/sophie-xu-cpa/" target="_blank" rel="noopener noreferrer" style="width: 100%; box-sizing: border-box; text-align: center; text-decoration: none; background: #0A66C2; color: #FFFFFF; font-weight: 600; font-size: 13.5px; padding: 11px 16px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 2px 6px rgba(10,102,194,0.25);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
           DM Sophie on LinkedIn
         </a>
-        <a id="capEmailLink" href="mailto:sophiexuxlx@gmail.com?subject=SoMeet%20Beta%20Invite%20Request" style="padding: 11px 16px; background: #F4EDED; border: 1px solid #A58E8A; border-radius: 10px; font-weight: 600; font-size: 13.5px; color: #3E3433; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
-          ✉️ Email Sophie
-        </a>
-        <button onclick="copySophieEmail()" id="capCopyEmailBtn" style="padding: 11px 16px; background: #FFFFFF; border: 1px solid #A58E8A; border-radius: 10px; font-weight: 600; font-size: 13.5px; color: #7A6966; cursor: pointer;">
-          📋 Copy Email
-        </button>
       </div>
 
-      <div class="capacity-message-card">
+      <!-- Contact Method #2: In-App Message (Shown to Testers) -->
+      <div class="capacity-message-card" id="capMessageCard">
         <h4 style="margin: 0 0 6px 0; font-size: 13.5px; font-weight: 700; color: #3E3433;">Send a Direct Message to Sophie</h4>
         <p style="margin: 0 0 10px 0; font-size: 12px; color: #7A6966;">Request beta access or provide actionable feedback for additional free hours.</p>
         <textarea id="capMessageText" rows="3" placeholder="Hi Sophie, I'd like to request beta access or send some feedback..." style="width: 100%; box-sizing: border-box; border: 1px solid #E2D6D3; border-radius: 8px; padding: 10px 12px; font-size: 13px; font-family: inherit; color: #3E3433; outline: none; resize: vertical;"></textarea>
@@ -1103,6 +1099,17 @@
           Send Request to Sophie
         </button>
         <div id="capSubmitResult" style="display: none; margin-top: 8px; font-size: 12.5px; color: #2E7D32; font-weight: 600; text-align: center;"></div>
+      </div>
+
+      <!-- Founder Admin Inbox (Shown ONLY to Sophie) -->
+      <div id="founderInboxCard" style="display: none; background: #FFFFFF; border: 1px solid #E2D6D3; border-radius: 12px; padding: 14px 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h4 style="margin: 0; font-size: 13.5px; font-weight: 700; color: #3E3433;">📩 Tester Messages & Feedback</h4>
+          <span id="founderMsgCount" style="background: #E8F5E9; color: #2E7D32; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 12px;">0 Messages</span>
+        </div>
+        <div id="founderMsgList" style="max-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+          <div style="font-size: 12.5px; color: #7A6966; text-align: center; padding: 14px 0;">Loading incoming requests...</div>
+        </div>
       </div>
 
       <div style="margin-top: 18px; text-align: center; border-top: 1px solid #E2D6D3; padding-top: 14px;">
@@ -1320,6 +1327,8 @@ registerProcessor('pcm-worklet-processor', PcmWorkletProcessor);
       
       const email = currentUser ? (currentUser.email || "").toLowerCase() : "";
       const isUnlimited = userTierInfo.is_unlimited || LIFETIME_UNLIMITED_EMAILS.includes(email);
+      const capMsgCard = document.getElementById('capMessageCard');
+      const founderCard = document.getElementById('founderInboxCard');
 
       if (isUnlimited) {
         if (tierEl) tierEl.innerText = "Founder (Lifetime Unlimited)";
@@ -1329,7 +1338,17 @@ registerProcessor('pcm-worklet-processor', PcmWorkletProcessor);
         }
         if (titleEl) titleEl.innerText = "Founder Account (Unlimited)";
         if (introEl) introEl.innerText = "You have full lifetime unlimited access to SoMeet recording and Gemini speech intelligence.";
-      } else if (userTierInfo.is_whitelisted === false) {
+        if (capMsgCard) capMsgCard.style.display = 'none';
+        if (founderCard) {
+          founderCard.style.display = 'block';
+          loadFounderInbox();
+        }
+      } else {
+        if (capMsgCard) capMsgCard.style.display = 'block';
+        if (founderCard) founderCard.style.display = 'none';
+      }
+      
+      if (!isUnlimited && userTierInfo.is_whitelisted === false) {
         if (tierEl) tierEl.innerText = "Private Beta (Invite Required)";
         if (remEl) {
           remEl.innerText = "Awaiting Invite Approval";
@@ -1426,6 +1445,56 @@ registerProcessor('pcm-worklet-processor', PcmWorkletProcessor);
       } finally {
         if (btn) { btn.disabled = false; btn.innerText = "Send Request to Sophie"; }
       }
+    }
+
+    async function loadFounderInbox() {
+      const listEl = document.getElementById('founderMsgList');
+      const countEl = document.getElementById('founderMsgCount');
+      if (!listEl) return;
+      try {
+        const token = currentUser ? await currentUser.getIdToken() : '';
+        const resp = await fetch('/api/admin/requests', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          const reqs = data.requests || [];
+          if (countEl) countEl.innerText = `${reqs.length} Messages`;
+          if (reqs.length === 0) {
+            listEl.innerHTML = `<div style="font-size: 12.5px; color: #7A6966; text-align: center; padding: 14px 0;">No tester messages yet.</div>`;
+            return;
+          }
+          listEl.innerHTML = reqs.map(r => {
+            const timeStr = r.timestamp ? new Date(r.timestamp).toLocaleString() : '';
+            return `
+              <div style="background: #FDFBFB; border: 1px solid #EFE8E6; border-radius: 8px; padding: 10px 12px; font-size: 12.5px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                  <a href="mailto:${r.email}" style="font-weight: 700; color: #0A66C2; text-decoration: none;">${r.email || 'Anonymous'}</a>
+                  <span style="font-size: 11px; color: #A58E8A;">${timeStr}</span>
+                </div>
+                <div style="color: #3E3433; white-space: pre-wrap; line-height: 1.4;">${r.message || ''}</div>
+                <div style="margin-top: 6px; text-align: right;">
+                  <button onclick="dismissFounderMsg('${r.timestamp}')" style="background: none; border: none; font-size: 11px; color: #A58E8A; cursor: pointer; text-decoration: underline;">Dismiss</button>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      } catch (e) {
+        listEl.innerHTML = `<div style="font-size: 12px; color: #C53030; text-align: center;">Error loading messages: ${e.message}</div>`;
+      }
+    }
+
+    async function dismissFounderMsg(ts) {
+      if (!confirm("Dismiss this message?")) return;
+      try {
+        const token = currentUser ? await currentUser.getIdToken() : '';
+        await fetch(`/api/admin/requests?timestamp=${encodeURIComponent(ts)}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        loadFounderInbox();
+      } catch(e) {}
     }
 
     async function syncUsedSeconds(sec) {
