@@ -548,9 +548,7 @@
       <div class="logo-title">SoMeet</div>
     </div>
     <div class="auth-bar">
-      <button class="btn-action" onclick="openPrivacyModal()" title="View Privacy note">
-        <span>🔒</span> Privacy
-      </button>
+      <button class="btn-action" onclick="openPrivacyModal()" title="View Privacy note">Privacy</button>
       <button class="btn-action" id="authBtn" onclick="handleAuth()">Sign In (Testers Only)</button>
     </div>
   </header>
@@ -567,12 +565,8 @@
           <span>🎙</span> Live Caption <span style="font-size: 11px; color: #94A3B8; font-weight: 500; text-transform: none; margin-left: 8px;">(✏️ Click to edit when done)</span>
         </div>
         <div class="action-btn-group">
-          <button class="btn-action" onclick="copyTranscript()" title="Copy transcript to clipboard">
-            <span>📋</span> Copy
-          </button>
-          <button class="btn-action" onclick="downloadWordTranscript()" title="Download as formatted Microsoft Word document (.docx)">
-            <span>📄</span> Word (.docx)
-          </button>
+          <button class="btn-action" onclick="copyTranscript()" title="Copy transcript to clipboard">Copy</button>
+          <button class="btn-action" onclick="downloadWordTranscript()" title="Download as formatted Microsoft Word document (.docx)">Word (.docx)</button>
         </div>
       </div>
       <div class="transcript-body" id="transcriptText" contenteditable="true" spellcheck="true" title="Click text to edit when done">
@@ -586,9 +580,7 @@
           <span>Audio Playback:</span>
         </div>
         <audio id="audioPlayer" controls style="flex: 1; min-width: 220px; height: 36px; border-radius: 6px;"></audio>
-        <button class="btn-action" id="audioDownloadBarBtn" onclick="downloadAudioWav()" title="Download raw speech recording as uncompressed .WAV audio file">
-          <span>📥</span> Download Audio (.wav)
-        </button>
+        <button class="btn-action" id="audioDownloadBarBtn" onclick="downloadAudioWav()" title="Download raw speech recording as uncompressed .WAV audio file">Download Audio (.wav)</button>
       </div>
     </div>
 
@@ -599,15 +591,9 @@
           <span>✨</span> Speech Summary <span style="font-size: 11px; color: #94A3B8; font-weight: 500; text-transform: none; margin-left: 8px;">(✏️ Click to edit when done)</span>
         </div>
         <div class="action-btn-group">
-          <button class="btn-action btn-summary" id="summarizeBtn" onclick="generateSummary()">
-            <span>⚡</span> Generate Summary
-          </button>
-          <button class="btn-action" onclick="copySummary()" title="Copy summary to clipboard">
-            <span>📋</span> Copy
-          </button>
-          <button class="btn-action" onclick="downloadWordSummary()" title="Download summary as formatted Microsoft Word document (.docx)">
-            <span>📄</span> Word (.docx)
-          </button>
+          <button class="btn-action btn-summary" id="summarizeBtn" onclick="generateSummary()">Generate Summary</button>
+          <button class="btn-action" onclick="copySummary()" title="Copy summary to clipboard">Copy</button>
+          <button class="btn-action" onclick="downloadWordSummary()" title="Download summary as formatted Microsoft Word document (.docx)">Word (.docx)</button>
         </div>
       </div>
       <div class="summary-content" id="summaryText" contenteditable="true" spellcheck="true" title="Click text to edit when done">
@@ -618,7 +604,6 @@
     <!-- Record Button & Controls -->
     <div class="controls-container">
       <button class="btn-record" id="recordBtn" onclick="toggleRecording()">
-        <span id="btnIcon">🎙</span>
         <span id="btnText">Record</span>
       </button>
     </div>
@@ -1301,7 +1286,7 @@
       const sumBtn = document.getElementById('summarizeBtn');
       const sumEl = document.getElementById('summaryText');
       sumBtn.disabled = true;
-      sumBtn.innerHTML = `<span>⏳</span> Generating...`;
+      sumBtn.innerHTML = `Generating...`;
       sumEl.innerHTML = `<span style="color: #64748B;">Analyzing speech...</span>`;
       sumEl.setAttribute('contenteditable', 'false');
 
@@ -1331,7 +1316,7 @@
         sumEl.innerHTML = `<span style="color: #EF4444;">Error generating summary: ${err.message}</span>`;
       } finally {
         sumBtn.disabled = false;
-        sumBtn.innerHTML = `<span>⚡</span> Regenerate Summary`;
+        sumBtn.innerHTML = `Regenerate Summary`;
         sumEl.setAttribute('contenteditable', 'true');
       }
     }
@@ -1638,7 +1623,7 @@
       const sumBtn = document.getElementById('summarizeBtn');
       if (sumBtn) {
         sumBtn.disabled = false;
-        sumBtn.innerHTML = '<span>⚡</span> Generate Summary';
+        sumBtn.innerHTML = 'Generate Summary';
       }
 
       // 5. Reset Audio Recording & Player
