@@ -607,12 +607,6 @@
       <div class="logo-title">SoMeet</div>
     </div>
     <div class="auth-bar">
-      <button class="btn-action btn-new-session" id="newSessionHeaderBtn" onclick="startNewSession()" title="Start a fresh recording session" style="padding: 6px 16px !important; font-size: 12.5px !important; border-radius: 16px !important;">
-        <span>✨</span> New Session
-      </button>
-      <div class="perks-badge" id="userBadge" style="background: #E2E8F0; color: #334155; border: 1px solid #CBD5E1;">
-        <span>🔒 Private Beta</span>
-      </div>
       <button class="btn-action btn-privacy" onclick="openPrivacyModal()" title="View Privacy note">
         <span>🔒</span> Privacy
       </button>
@@ -860,33 +854,19 @@
 
     function updateAuthUI(user) {
       const authBtn = document.getElementById('authBtn');
-      const userBadge = document.getElementById('userBadge');
       if (authBtn) {
         authBtn.innerText = user.displayName || user.email.split('@')[0];
         authBtn.title = `Signed in as ${user.email} (Click to Sign Out)`;
         authBtn.onclick = handleSignOut;
       }
-      if (userBadge) {
-        userBadge.innerHTML = '<span>⭐️ Tester Active</span>';
-        userBadge.style.background = '#E6F4EA';
-        userBadge.style.color = '#137333';
-        userBadge.style.borderColor = '#A8DAB5';
-      }
     }
 
     function resetAuthUI() {
       const authBtn = document.getElementById('authBtn');
-      const userBadge = document.getElementById('userBadge');
       if (authBtn) {
         authBtn.innerText = "Sign In (Testers Only)";
         authBtn.title = "Sign in (Authorized Testers Only)";
         authBtn.onclick = openAuthModal;
-      }
-      if (userBadge) {
-        userBadge.innerHTML = '<span>🔒 Private Beta</span>';
-        userBadge.style.background = '#E2E8F0';
-        userBadge.style.color = '#334155';
-        userBadge.style.borderColor = '#CBD5E1';
       }
     }
 
