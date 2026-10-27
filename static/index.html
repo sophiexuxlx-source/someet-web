@@ -247,30 +247,6 @@
       background: linear-gradient(135deg, #5B9BD5 0%, #41719C 100%);
       color: white;
     }
-    .btn-new-session {
-      background: linear-gradient(135deg, #92D050 0%, #70AD47 100%) !important;
-      border: none !important;
-      color: #FFFFFF !important;
-      text-shadow: 0 1px 2px rgba(0, 50, 0, 0.25);
-      font-size: 14px !important;
-      font-weight: 700 !important;
-      padding: 9px 26px !important;
-      border-radius: 24px !important;
-      box-shadow: 0 4px 14px rgba(112, 173, 71, 0.35) !important;
-      transition: all 0.2s ease !important;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .btn-new-session:hover {
-      background: linear-gradient(135deg, #70AD47 0%, #548235 100%) !important;
-      transform: translateY(-1px);
-      box-shadow: 0 6px 18px rgba(84, 130, 53, 0.45) !important;
-    }
-    .btn-new-session:active {
-      transform: translateY(0);
-    }
 
     .transcript-body {
       font-size: 16px;
@@ -645,11 +621,6 @@
         <span id="btnIcon">🎙</span>
         <span id="btnText">Record</span>
       </button>
-      <div style="margin-top: 16px; display: flex; align-items: center; justify-content: center;">
-        <button class="btn-action btn-new-session" onclick="startNewSession()" title="Reset and start a fresh session">
-          <span>✨</span> New Session
-        </button>
-      </div>
     </div>
   </main>
 
@@ -918,6 +889,15 @@
 
       if (!isRecording) {
         try {
+          // Reset session state for fresh recording take
+          allPcmChunks = [];
+          recordedChunks = [];
+          latestWavBlob = null;
+          accumulatedText = "";
+          googleSpeechFinalText = "";
+          googleSpeechInterimText = "";
+          liveStreamingText = "";
+
           // 1. Request microphone
           mediaStream = await navigator.mediaDevices.getUserMedia({
             audio: {
