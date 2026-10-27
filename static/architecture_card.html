@@ -314,13 +314,13 @@
         </div>
         <div class="client-chips">
           <div class="chip">
-            <strong>Microphone Ingestion</strong> 48kHz → 16kHz PCM16 Downsampling (AudioContext ScriptProcessorNode)
+            <strong>Microphone Ingestion</strong> AudioContext → 16kHz PCM16 Downsampling (ScriptProcessorNode)
           </div>
           <div class="chip">
-            <strong>Local Export</strong> Client-side Word (.docx) generation & RIFF/WAV packaging (Zero server roundtrip)
+            <strong>Local Export</strong> RIFF/WAV packaging in-browser · Word (.docx) via /api/export/docx
           </div>
           <div class="chip">
-            <strong>Companion UI</strong> 3D Robot Mascot interactive recording controller & Almond Mochi responsive system
+            <strong>Companion UI</strong> Mascot avatar record button & Almond Mochi responsive theme
           </div>
         </div>
       </div>
@@ -328,7 +328,7 @@
       <!-- Connector -->
       <div class="flow-connector">
         <div class="flow-line"></div>
-        <div class="flow-tag">WSS / HTTPS · Sub-second audio frames</div>
+        <div class="flow-tag">WSS / HTTPS · PCM16 audio frames</div>
       </div>
 
       <!-- Layer 2: Backend Services -->
@@ -338,31 +338,32 @@
           <div class="service-tech">FastAPI & Uvicorn Async Gateway</div>
           <div class="service-desc">Bi-directional streaming protocol handling high-throughput PCM16 audio chunks.</div>
           <ul class="bullet-list">
-            <li>Endpoint: <code>/ws/stream</code></li>
-            <li>In-memory circular audio buffer</li>
+            <li>Endpoint: <code>/api/realtime/ws</code></li>
+            <li>In-memory PCM bytearray buffer</li>
             <li>Zero server audio persistence</li>
           </ul>
         </div>
 
         <div class="service-box">
           <div class="service-header">Executive Summary API</div>
-          <div class="service-tech">Python 3.12 Asynchronous REST</div>
+          <div class="service-tech">Python 3.12 Async REST (FastAPI)</div>
           <div class="service-desc">Post-speech synthesis endpoint extracting structured business takeaways.</div>
           <ul class="bullet-list">
             <li>Endpoint: <code>/api/summarize</code></li>
-            <li>Pristine uncompressed WAV processing</li>
+            <li>Text-only transcript input (no audio on server)</li>
             <li>Local memory cleanup upon completion</li>
           </ul>
         </div>
 
         <div class="service-box">
           <div class="service-header">Identity & Quota Control</div>
-          <div class="service-tech">Firebase Admin & Firestore</div>
+          <div class="service-tech">Firebase Auth + local JSON store</div>
           <div class="service-desc">Token-authenticated account tier management and time budgeting.</div>
           <ul class="bullet-list">
             <li>Option A Whitelist (20 early users)</li>
             <li>120-minute beta allowance (90 days)</li>
             <li>30s debounced client usage sync</li>
+            <li>Quota & whitelist persisted to data/*.json</li>
           </ul>
         </div>
       </div>
@@ -370,7 +371,7 @@
       <!-- Connector -->
       <div class="flow-connector">
         <div class="flow-line"></div>
-        <div class="flow-tag">Secure API Dispatch · Strict Zero-Data Retention</div>
+        <div class="flow-tag">Secure API Dispatch · Zero Audio/Transcript Server Storage</div>
       </div>
 
       <!-- Layer 3: External AI Tier -->
@@ -384,18 +385,18 @@
         <div class="ai-grid">
           <div class="ai-card">
             <div class="ai-role">Real-Time Live Captioning</div>
-            <div class="ai-model">Google Speech Neural Engine</div>
-            <div class="ai-points">Sub-second continuous streaming captions with dynamic interim correction and acoustic noise suppression.</div>
+            <div class="ai-model">Web Speech API + Faster-Whisper Tiny (int8)</div>
+            <div class="ai-points">Browser Web Speech API streams sub-second interim captions; local Faster-Whisper Tiny (int8) transcribes for final accuracy.</div>
           </div>
           <div class="ai-card">
             <div class="ai-role">Executive Summary & Decisions</div>
-            <div class="ai-model">Google Gemini 2.5 Flash</div>
-            <div class="ai-points">Extracts Key Discussion Points, Formal Decisions, and Action Items with deadlines; zero retention policy.</div>
+            <div class="ai-model">Google Gemini Flash-Lite</div>
+            <div class="ai-points">Extracts Executive Overview, Key Discussion Points, Decisions & Agreements, and Action Items with inline owners (gemini-flash-lite-latest / gemini-3.1-flash-lite).</div>
           </div>
           <div class="ai-card">
             <div class="ai-role">Cloud Authentication</div>
-            <div class="ai-model">Firebase Auth & Firestore</div>
-            <div class="ai-points">Google OAuth + Email magic links with cryptographically verified ID tokens.</div>
+            <div class="ai-model">Firebase Authentication</div>
+            <div class="ai-points">Google OAuth with cryptographically verified ID tokens (firebase-admin).</div>
           </div>
         </div>
       </div>
@@ -407,7 +408,7 @@
       <div>
         <span class="trust-highlight">✓ Local In-Memory Buffer</span> &nbsp;•&nbsp;
         <span class="trust-highlight">✓ Zero Audio/Transcript Server Storage</span> &nbsp;•&nbsp;
-        <span class="trust-highlight">✓ Sub-Second Acoustic Latency</span>
+        <span class="trust-highlight">✓ Sub-Second Client Captioning</span>
       </div>
     </div>
   </div>
