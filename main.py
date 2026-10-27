@@ -371,6 +371,9 @@ async def transcribe_endpoint(
     try:
         tmp_dir = BASE_DIR / "tmp"
         tmp_dir.mkdir(exist_ok=True)
+        raw_wav = base64.b64decode(req.audio_base64)
+        with open(tmp_dir / "last_recording.wav", "wb") as f:
+            f.write(raw_wav)
         with open(tmp_dir / "transcribe_debug.log", "a", encoding="utf-8") as f:
             f.write(f"\n--- TRANSCRIBE REQUEST ({len(req.audio_base64)} b64 bytes) ---\n")
             f.write(f"ENGINE: {engine_used}\n")

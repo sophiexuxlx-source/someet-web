@@ -159,19 +159,15 @@ def transcribe_audio_base64(b64_audio: str, mime_type: str = "audio/wav", contex
 
     context_note = f"\nTranscription Context / Priority Terminology:\n{context.strip()}\n" if context and context.strip() else ""
     prompt = (
-        "You are an expert executive speech-to-text transcription engine specializing in corporate finance, accounting, and regulatory compliance.\n"
-        "Listen to the audio recording and transcribe all spoken words verbatim from start to finish.\n\n"
+        "You are a verbatim speech-to-text transcription engine.\n"
+        "Listen to the audio recording and transcribe exactly what is spoken from the first syllable to the end.\n\n"
         f"{context_note}"
-        "Strict Transcription Guidelines:\n"
-        "1. Full-fidelity audio transcription: transcribe every word spoken from the very first syllable (e.g. \"Bachelor's degree in accounting\", \"Prepare and present...\"). Never drop opening words.\n"
-        "2. Exact domain terminology & capitalization:\n"
-        "   - Capitalize formal corporate, board, and accounting terms: 'Minimum Capital Test (MCT)', 'Regulatory Compliance Management (RCM)', 'Board and Audit Committee', 'General Ledger', 'CPA designation', 'IFRS 17', 'OSFI'.\n"
-        "   - Enclose acronyms in parentheses ONLY when they follow their full expanded name (e.g. 'Minimum Capital Test (MCT)'). Do NOT put parentheses around 'CPA designation'.\n"
-        "3. Natural punctuation:\n"
-        "   - Insert clean standard punctuation (commas, periods, colons for headers).\n"
-        "   - Output continuous, fluent natural prose. Do NOT inject bullet point symbols ('•') unless explicitly spoken by the speaker.\n"
-        "4. Do NOT hallucinate, summarize, omit, or replace words.\n"
-        "5. Output ONLY the raw transcript text."
+        "Strict Transcription Rules:\n"
+        "1. Verbatim Phonetic Fidelity: Transcribe every spoken word exactly as articulated without replacing, paraphrasing, or altering words (e.g. if the speaker says 'Options 1 and 2', do NOT replace with 'Overoptimism' or 'Edge cases').\n"
+        "2. Domain Capitalization: Capitalize proper nouns, sentence starts, and standard acronyms (e.g. MCT, RCM, CPA designation, General Ledger, IFRS, OSFI).\n"
+        "3. Punctuation & Paragraphs: Insert natural punctuation (commas, periods, colons). When the speaker pauses between paragraphs or major points, insert a blank line paragraph break.\n"
+        "4. No Bullet Injections: Output fluent, natural prose. Do NOT inject bullet point symbols ('•') unless explicitly spoken by the speaker.\n"
+        "5. Output ONLY the raw transcript text. Do not add markdown labels, commentary, or notes."
     )
 
     payload = {
