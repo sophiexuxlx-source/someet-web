@@ -10,13 +10,13 @@
   
   <style>
     :root {
-      --bg: #E9E1DF;              /* Alabaster Grey (233, 225, 223) from Serene & Muted palette */
-      --card-bg: #FAF8F5;         /* Linen White from first palette */
-      --text: #1F2F38;            /* Soft Harbor dark slate text */
-      --subtext: #6A7B84;         /* Muted harbor slate */
-      --primary: #5E8596;         /* Soft Harbor deep coastal blue */
-      --primary-hover: #4F7687;   /* Deep harbor tone */
-      --border: #D8CECC;          /* Alabaster Grey border */
+      --bg: #E9E1DF;              /* Alabaster Grey background (preserved as requested) */
+      --card-bg: #F9F2E8;         /* Almond Mochi warm cream card background */
+      --border: #A58E8A;          /* Mocha-taupe card border */
+      --text: #3E3433;            /* Deep warm espresso slate text */
+      --subtext: #7A6B68;         /* Muted taupe slate */
+      --primary: #A58E8A;         /* Primary accent */
+      --primary-hover: #8E7571;
       --accent-pill: #E2D7D5;
     }
     * {
@@ -48,7 +48,7 @@
     .logo-icon {
       width: 28px;
       height: 28px;
-      background: linear-gradient(135deg, #9FB7C3, #5E8596);
+      background: linear-gradient(135deg, #B59E9A, #8E7571);
       border-radius: 8px;
       display: flex;
       align-items: center;
@@ -56,13 +56,13 @@
       color: white;
       font-size: 14px;
       font-weight: bold;
-      box-shadow: 0 2px 6px rgba(94, 133, 150, 0.3);
+      box-shadow: 0 2px 6px rgba(165, 142, 138, 0.3);
     }
     .logo-title {
       font-size: 18px;
       font-weight: 700;
       letter-spacing: -0.3px;
-      color: #1F2F38;
+      color: #3E3433;
     }
     .auth-bar {
       display: flex;
@@ -178,7 +178,7 @@
       font-size: 68px;
       font-weight: 300;
       letter-spacing: -2px;
-      color: #1F2F38;
+      color: #3E3433;
       margin-bottom: 4px;
     }
     .timer-subtitle {
@@ -187,72 +187,22 @@
       margin-bottom: 28px;
     }
 
-    /* Cards */
+    /* Cards - Almond Mochi #F9F2E8 with #A58E8A Border */
     .studio-card {
       width: 100%;
+      background: #F9F2E8;
+      border: 1px solid #A58E8A;
       border-radius: 16px;
       padding: 22px 24px;
       text-align: left;
       margin-bottom: 24px;
+      box-shadow: 0 4px 18px rgba(165, 142, 138, 0.12);
       transition: all 0.2s ease;
     }
-
-    /* Live Caption Card (Top - Lighter Linen White) */
-    .card-caption {
-      background: #FAF8F5;
-      border: 1px solid #E5DFD5;
-      box-shadow: 0 2px 12px rgba(31, 47, 56, 0.04);
-    }
-    .card-caption .card-header-title {
-      color: #6A7B84;
-    }
-    .card-caption .transcript-body {
-      background: #FFFFFF;
-      border: 1px solid #EAE5DC;
-      color: #1F2F38;
-    }
-    .card-caption .transcript-body:hover:not(:focus):not([contenteditable="false"]) {
-      border-color: #D8D2C6;
-      background-color: #FCFBFA;
-    }
-    .card-caption .transcript-body:focus {
-      border-color: #9FB7C3;
-      background-color: #FFFFFF;
-      box-shadow: 0 0 0 2.5px rgba(159, 183, 195, 0.3);
-    }
-
-    /* Speech Summary Card (Bottom - Darker Soft Harbor, lightened) */
+    .card-caption,
     .card-summary {
-      background: #C4D6E2;
-      border: 1px solid #9FB7C3;
-      box-shadow: 0 4px 18px rgba(31, 47, 56, 0.08);
-    }
-    .card-summary .card-header-title {
-      color: #1F2F38;
-      font-weight: 800;
-    }
-    .card-summary .summary-content {
-      background: #FFFFFF;
-      border: 1px solid #B0C7D5;
-      color: #1F2F38;
-    }
-    .card-summary .summary-content:hover:not(:focus):not([contenteditable="false"]) {
-      border-color: #8EADC0;
-      background-color: #FCFEFF;
-    }
-    .card-summary .summary-content:focus {
-      border-color: #5E8596;
-      background-color: #FFFFFF;
-      box-shadow: 0 0 0 2.5px rgba(94, 133, 150, 0.35);
-    }
-    .card-summary .btn-action {
-      background: #FFFFFF;
-      border: 1px solid #A4BDCB;
-      color: #1F2F38;
-    }
-    .card-summary .btn-action:hover {
-      background: #EAF2F6;
-      color: #0F1D24;
+      background: #F9F2E8;
+      border: 1px solid #A58E8A;
     }
 
     .card-header-row {
@@ -265,7 +215,7 @@
       font-size: 12px;
       text-transform: uppercase;
       font-weight: 700;
-      color: #6A7B84;
+      color: #7A6662;
       letter-spacing: 0.6px;
       display: flex;
       align-items: center;
@@ -276,9 +226,9 @@
       gap: 8px;
     }
     .btn-action {
-      background: #FFFFFF;
-      color: #1F2F38;
-      border: 1px solid #D5CFC5;
+      background: #FBF7F7;
+      color: #4A3E3D;
+      border: 1px solid #C5B6B2;
       border-radius: 6px;
       padding: 5px 12px;
       font-size: 12px;
@@ -290,26 +240,28 @@
       transition: all 0.15s;
     }
     .btn-action:hover {
-      background: #F0ECE4;
-      color: #0F172A;
+      background: #EDE4DC;
+      color: #2E2524;
     }
     .btn-action:active {
       transform: scale(0.98);
     }
     .btn-summary {
-      background: linear-gradient(135deg, #7A9FAD 0%, #5E8596 100%) !important;
+      background: linear-gradient(135deg, #B59E9A 0%, #A58E8A 100%) !important;
       color: white !important;
       border: none !important;
     }
     .btn-summary:hover {
-      background: linear-gradient(135deg, #6C919F 0%, #4F7687 100%) !important;
+      background: linear-gradient(135deg, #A58E8A 0%, #8E7571 100%) !important;
       color: white !important;
     }
 
     .transcript-body {
       font-size: 16px;
       line-height: 1.65;
-      color: var(--text);
+      background: #FFFFFF;
+      border: 1px solid #D5CAB9;
+      color: #3E3433;
       min-height: 220px;
       max-height: 420px;
       overflow-y: auto;
@@ -319,6 +271,15 @@
       outline: none;
       cursor: text;
       transition: all 0.15s ease;
+    }
+    .transcript-body:hover:not(:focus):not([contenteditable="false"]) {
+      border-color: #BFAFA7;
+      background-color: #FCFBFA;
+    }
+    .transcript-body:focus {
+      border-color: #A58E8A;
+      background-color: #FFFFFF;
+      box-shadow: 0 0 0 2.5px rgba(165, 142, 138, 0.28);
     }
     .transcript-body[contenteditable="false"],
     .summary-content[contenteditable="false"] {
@@ -333,17 +294,28 @@
     .summary-content {
       font-size: 14px;
       line-height: 1.65;
-      color: var(--text);
+      background: #FFFFFF;
+      border: 1px solid #D5CAB9;
+      color: #3E3433;
       padding: 12px 14px;
       border-radius: 8px;
       outline: none;
       cursor: text;
       transition: all 0.15s ease;
     }
+    .summary-content:hover:not(:focus):not([contenteditable="false"]) {
+      border-color: #BFAFA7;
+      background-color: #FCFBFA;
+    }
+    .summary-content:focus {
+      border-color: #A58E8A;
+      background-color: #FFFFFF;
+      box-shadow: 0 0 0 2.5px rgba(165, 142, 138, 0.28);
+    }
     .summary-content h3 {
       font-size: 15px;
       font-weight: 700;
-      color: #1F2F38;
+      color: #3E3433;
       margin-top: 14px;
       margin-bottom: 6px;
     }
@@ -369,7 +341,7 @@
     .btn-record {
       width: 146px;
       height: 52px;
-      background: linear-gradient(135deg, #7A9FAD 0%, #5E8596 100%);
+      background: linear-gradient(135deg, #B59E9A 0%, #A58E8A 100%);
       color: white;
       border: none;
       border-radius: 26px;
@@ -381,16 +353,16 @@
       justify-content: center;
       gap: 10px;
       transition: all 0.2s;
-      box-shadow: 0 4px 18px rgba(94, 133, 150, 0.35);
+      box-shadow: 0 4px 18px rgba(165, 142, 138, 0.38);
     }
     .btn-record:hover {
-      background: linear-gradient(135deg, #6C919F 0%, #4F7687 100%);
+      background: linear-gradient(135deg, #A58E8A 0%, #8E7571 100%);
       transform: translateY(-2px);
-      box-shadow: 0 6px 22px rgba(79, 118, 135, 0.45);
+      box-shadow: 0 6px 22px rgba(142, 117, 113, 0.45);
     }
     .btn-record.recording {
-      background: #E05252;
-      box-shadow: 0 4px 14px rgba(224, 82, 82, 0.4);
+      background: #D9534F;
+      box-shadow: 0 4px 14px rgba(217, 83, 79, 0.4);
       animation: pulse 1.8s infinite;
     }
     @keyframes pulse {
@@ -612,8 +584,8 @@
       </div>
 
       <!-- Integrated Audio Play & Download Bar in the middle -->
-      <div id="audioBarContainer" style="margin-top: 18px; padding: 10px 14px; background: #F2EFE9; border: 1px solid #DDD7CB; border-radius: 10px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-        <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #1F2F38; white-space: nowrap;">
+      <div id="audioBarContainer" style="margin-top: 18px; padding: 10px 14px; background: #F2ECE1; border: 1px solid #D5CAB9; border-radius: 10px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #3E3433; white-space: nowrap;">
           <span>Audio Playback:</span>
         </div>
         <audio id="audioPlayer" controls style="flex: 1; min-width: 220px; height: 36px; border-radius: 6px;"></audio>
@@ -1131,21 +1103,21 @@
             audioPlayer.load();
           }
           if (dlBtn) {
-            dlBtn.style.background = '#FFFFFF';
-            dlBtn.style.borderColor = '#9FB7C3';
-            dlBtn.style.color = '#1F2F38';
+            dlBtn.style.background = '#FBF7F7';
+            dlBtn.style.borderColor = '#A58E8A';
+            dlBtn.style.color = '#3E3433';
           }
         }
 
         // Sub-second Gemini Smart Polish: delivers Antigravity-grade punctuation and phonetic accuracy
         if (rawText) {
           if (transcriptEl) {
-            transcriptEl.innerHTML = `<span style="color: #1F2F38; font-weight: 500;">${rawText}</span> <span style="color: #5E8596; font-size: 13px;">(Polishing...)</span>`;
+            transcriptEl.innerHTML = `<span style="color: #3E3433; font-weight: 500;">${rawText}</span> <span style="color: #A58E8A; font-size: 13px;">(Polishing...)</span>`;
           }
           polishWithGemini(rawText);
         } else if (latestWavBlob) {
           if (transcriptEl) {
-            transcriptEl.innerHTML = `<span style="color: #5E8596;">Transcribing...</span>`;
+            transcriptEl.innerHTML = `<span style="color: #A58E8A;">Transcribing...</span>`;
           }
           refineWithGemini(latestWavBlob);
         } else {
