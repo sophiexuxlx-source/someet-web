@@ -1226,6 +1226,29 @@ registerProcessor('pcm-worklet-processor', PcmWorkletProcessor);
       "xusophiexiaoxiao@gmail.com"
     ];
 
+    // Optimistic Instant Session Restorer (eliminates logout/login flicker on page refresh)
+    try {
+      const savedUserStr = localStorage.getItem('someet_cached_user');
+      const savedTierStr = localStorage.getItem('someet_cached_tier');
+      firebaseIdToken = localStorage.getItem('someet_cached_token') || null;
+      if (savedUserStr) {
+        const u = JSON.parse(savedUserStr);
+        currentUser = {
+          ...u,
+          getIdToken: async () => firebaseIdToken || ""
+        };
+      }
+      if (savedTierStr) {
+        userTierInfo = { ...userTierInfo, ...JSON.parse(savedTierStr) };
+      }
+      if (currentUser && currentUser.email && LIFETIME_UNLIMITED_EMAILS.includes(currentUser.email.toLowerCase())) {
+        userTierInfo.is_unlimited = true;
+        userTierInfo.tier = "Founder (Lifetime Unlimited)";
+      }
+    } catch (e) {
+      console.warn("[Session] Error restoring cached session:", e);
+    }
+
     function formatMinsSecs(totalSeconds) {
       if (totalSeconds == null || totalSeconds < 0) return "00:00";
       const m = Math.floor(totalSeconds / 60);
@@ -1236,10 +1259,10 @@ registerProcessor('pcm-worklet-processor', PcmWorkletProcessor);
     async function fetchUserTierProfile() {
       if (!currentUser) return;
       try {
-        const token = await currentUser.getIdToken();
-        firebaseIdToken = token;
+        const token = (typeof currentUser.getIdToken === 'function') ? await currentUser.getIdToken() : (firebaseIdToken || "");
+        if (token) firebaseIdToken = token;
         const res = await fetch('/api/user/me', {
-          headers: { 'Authorization': 'Bearer ' + token }
+          headers: token ? { 'Authorization': 'Bearer ' + token } : {}
         });
         if (res.ok) {
           const profile = await res.json();
@@ -1247,6 +1270,14 @@ registerProcessor('pcm-worklet-processor', PcmWorkletProcessor);
             ...userTierInfo,
             ...profile
           };
+          const email = (currentUser.email || "").toLowerCase();
+          if (LIFETIME_UNLIMITED_EMAILS.includes(email)) {
+            userTierInfo.is_unlimited = true;
+            userTierInfo.tier = "Founder (Lifetime Unlimited)";
+          }
+          try {
+            localStorage.setItem('someet_cached_tier', JSON.stringify(userTierInfo));
+          } catch(e) {}
           updateTierUI();
         }
       } catch (err) {
@@ -1352,42 +1383,42 @@ registerProcessor('pcm-worklet-processor', PcmWorkletProcessor);
       } else {
         if (capMsgCard) capMsgCard.style.display = 'block';
         if (founderCard) founderCard.style.display = 'none';
-      }
-      
-      if (!isUnlimited && userTierInfo.is_whitelisted === false) {
-        if (tierEl) tierEl.innerText = "Private Beta (Invite Required)";
-        if (remEl) {
-          remEl.innerText = "Awaiting Invite Approval";
-          remEl.style.color = "#C53030";
+
+        if (userTierInfo.is_whitelisted === false) {
+          if (tierEl) tierEl.innerText = "Private Beta (Invite Required)";
+          if (remEl) {
+            remEl.innerText = "Awaiting Invite Approval";
+            remEl.style.color = "#C53030";
+          }
+          if (titleEl) titleEl.innerText = "Private Beta Access";
+          if (introEl) introEl.innerHTML = "SoMeet is currently in private beta for 20 community testers. Each tester receives <strong>120 minutes of free AI speech transcription & executive summaries, valid for 90 days</strong> (whichever comes first). DM Sophie on LinkedIn to get an invite!";
+        } else if (userTierInfo.is_expired) {
+          if (tierEl) tierEl.innerText = "Community Beta Tester (Expired)";
+          if (remEl) {
+            remEl.innerText = "0m 00s (90 days elapsed)";
+            remEl.style.color = "#C53030";
+          }
+          if (titleEl) titleEl.innerText = "Beta Period Ended";
+          if (introEl) introEl.innerText = "Your 90-day beta testing period has ended. If you use it and send actionable feedback or bug reports, Sophie will happily top up your account with additional free hours! DM Sophie on LinkedIn to renew.";
+        } else if (userTierInfo.remaining_seconds <= 0) {
+          if (tierEl) tierEl.innerText = "Community Beta Tester (20 Slots)";
+          if (remEl) {
+            remEl.innerText = "0m 00s (Limit reached)";
+            remEl.style.color = "#C53030";
+          }
+          if (titleEl) titleEl.innerText = "120-Minute Beta Limit Reached";
+          if (introEl) introEl.innerText = "You have used your 120 minutes of free speech recording! If you use it and send actionable feedback or bug reports, Sophie will happily top up your account with additional free hours! DM Sophie on LinkedIn to request more hours.";
+        } else {
+          const remStr = formatMinsSecs(userTierInfo.remaining_seconds);
+          const daysLeft = userTierInfo.days_remaining != null ? userTierInfo.days_remaining : 90;
+          if (tierEl) tierEl.innerText = "Community Beta Tester (20 Slots)";
+          if (remEl) {
+            remEl.innerText = `${remStr} remaining • ${daysLeft} days valid`;
+            remEl.style.color = "#7A6966";
+          }
+          if (titleEl) titleEl.innerText = "Community Beta Tester";
+          if (introEl) introEl.innerText = "Each tester receives 120 minutes of free AI speech transcription & executive summaries, valid for 90 days (whichever comes first). If you use it and send actionable feedback or bug reports, Sophie will happily top up your account with additional free hours!";
         }
-        if (titleEl) titleEl.innerText = "Private Beta Access";
-        if (introEl) introEl.innerHTML = "SoMeet is currently in private beta for 20 community testers. Each tester receives <strong>120 minutes of free AI speech transcription & executive summaries, valid for 90 days</strong> (whichever comes first). DM Sophie on LinkedIn to get an invite!";
-      } else if (userTierInfo.is_expired) {
-        if (tierEl) tierEl.innerText = "Community Beta Tester (Expired)";
-        if (remEl) {
-          remEl.innerText = "0m 00s (90 days elapsed)";
-          remEl.style.color = "#C53030";
-        }
-        if (titleEl) titleEl.innerText = "Beta Period Ended";
-        if (introEl) introEl.innerText = "Your 90-day beta testing period has ended. If you use it and send actionable feedback or bug reports, Sophie will happily top up your account with additional free hours! DM Sophie on LinkedIn to renew.";
-      } else if (userTierInfo.remaining_seconds <= 0) {
-        if (tierEl) tierEl.innerText = "Community Beta Tester (20 Slots)";
-        if (remEl) {
-          remEl.innerText = "0m 00s (Limit reached)";
-          remEl.style.color = "#C53030";
-        }
-        if (titleEl) titleEl.innerText = "120-Minute Beta Limit Reached";
-        if (introEl) introEl.innerText = "You have used your 120 minutes of free speech recording! If you use it and send actionable feedback or bug reports, Sophie will happily top up your account with additional free hours! DM Sophie on LinkedIn to request more hours.";
-      } else {
-        const remStr = formatMinsSecs(userTierInfo.remaining_seconds);
-        const daysLeft = userTierInfo.days_remaining != null ? userTierInfo.days_remaining : 90;
-        if (tierEl) tierEl.innerText = "Community Beta Tester (20 Slots)";
-        if (remEl) {
-          remEl.innerText = `${remStr} remaining • ${daysLeft} days valid`;
-          remEl.style.color = "#7A6966";
-        }
-        if (titleEl) titleEl.innerText = "Community Beta Tester";
-        if (introEl) introEl.innerText = "Each tester receives 120 minutes of free AI speech transcription & executive summaries, valid for 90 days (whichever comes first). If you use it and send actionable feedback or bug reports, Sophie will happily top up your account with additional free hours!";
       }
 
       const userEmail = currentUser ? currentUser.email : "user";
@@ -1541,19 +1572,35 @@ registerProcessor('pcm-worklet-processor', PcmWorkletProcessor);
           firebase.auth().onAuthStateChanged(async (user) => {
             if (user) {
               currentUser = user;
+              try {
+                localStorage.setItem('someet_cached_user', JSON.stringify({
+                  uid: user.uid,
+                  email: user.email,
+                  displayName: user.displayName || user.email.split('@')[0]
+                }));
+              } catch(e) {}
               firebaseIdToken = await user.getIdToken();
+              try {
+                localStorage.setItem('someet_cached_token', firebaseIdToken);
+              } catch(e) {}
               await fetchUserTierProfile();
               updateTierUI();
               closeAuthModal();
             } else {
               currentUser = null;
               firebaseIdToken = null;
+              try {
+                localStorage.removeItem('someet_cached_user');
+                localStorage.removeItem('someet_cached_token');
+                localStorage.removeItem('someet_cached_tier');
+              } catch(e) {}
               userTierInfo = {
                 is_unlimited: false,
-                tier: "Standard Free Tier",
-                quota_seconds: 3600,
+                is_whitelisted: false,
+                tier: "Private Beta (Invite Required)",
+                quota_seconds: 7200,
                 used_seconds: 0,
-                remaining_seconds: 3600,
+                remaining_seconds: 0,
                 is_exhausted: false,
                 admin_contact: "sophiexuxlx@gmail.com"
               };
@@ -1690,7 +1737,28 @@ registerProcessor('pcm-worklet-processor', PcmWorkletProcessor);
 
     async function handleSignOut() {
       if (confirm("Would you like to sign out of SoMeet?")) {
-        await firebase.auth().signOut();
+        try {
+          localStorage.removeItem('someet_cached_user');
+          localStorage.removeItem('someet_cached_token');
+          localStorage.removeItem('someet_cached_tier');
+        } catch(e) {}
+        currentUser = null;
+        firebaseIdToken = null;
+        userTierInfo = {
+          is_unlimited: false,
+          is_whitelisted: false,
+          tier: "Private Beta (Invite Required)",
+          quota_seconds: 7200,
+          used_seconds: 0,
+          remaining_seconds: 0,
+          is_exhausted: false,
+          admin_contact: "sophiexuxlx@gmail.com"
+        };
+        resetAuthUI();
+        updateTierUI();
+        if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
+          try { await firebase.auth().signOut(); } catch(e) {}
+        }
       }
     }
 
