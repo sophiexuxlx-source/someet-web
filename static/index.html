@@ -1958,22 +1958,23 @@
         }
 
         // Antigravity-Grade Dual Pipeline:
-        // 1. Immediately display live Web Speech caption as preliminary preview
-        // 2. Fast sub-2s Gemini punctuation restoration pass to insert commas, periods, colons & capitalization
+        // 1. Immediately display live Web Speech caption as preliminary preview (0ms latency)
+        // 2. High-precision Gemini Multimodal Audio transcription decoded directly from WAV audio (~1.5-2s)
         const cleanPreview = formatSmartTypography(rawText);
-        if (cleanPreview) {
+        if (latestWavBlob && allPcmChunks.length > 0) {
+          if (transcriptEl && cleanPreview) {
+            transcriptEl.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${cleanPreview}</span> <span style="color: #A58E8A; font-size: 13px;">(Gemini audio transcribing...)</span>`;
+          } else if (transcriptEl) {
+            transcriptEl.innerHTML = `<span style="color: #A58E8A;">Transcribing audio with Gemini...</span>`;
+          }
+          refineWithGemini(latestWavBlob, cleanPreview);
+        } else if (cleanPreview) {
           accumulatedText = cleanPreview;
           googleSpeechFinalText = cleanPreview;
           if (transcriptEl) {
             transcriptEl.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${cleanPreview}</span> <span style="color: #A58E8A; font-size: 13px;">(Adding punctuation...)</span>`;
           }
           polishWithGemini(cleanPreview);
-        } else if (latestWavBlob && allPcmChunks.length > 0) {
-          // Fallback only when Web Speech is unavailable (Firefox/Safari) and rawText is empty
-          if (transcriptEl) {
-            transcriptEl.innerHTML = `<span style="color: #A58E8A;">Transcribing audio with Gemini...</span>`;
-          }
-          refineWithGemini(latestWavBlob, "");
         } else {
           finishCleanup();
         }

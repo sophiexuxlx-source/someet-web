@@ -136,16 +136,16 @@ def transcribe_pcm(pcm_bytes: bytes, language: Optional[str] = None, initial_pro
 
 def transcribe_audio_base64(b64_audio: str, mime_type: str = "audio/wav", context: str = "") -> str:
     """
-    Fallback: Transcribes audio payload using Google Gemini Multimodal API.
+    Transcribes audio payload using Google Gemini Multimodal Audio API.
     """
     if not GEMINI_API_KEY:
         return ""
 
-    models_to_try = ["gemini-3.5-transcribe", "gemini-3.5-flash", "gemini-3.5-flash-lite"]
+    models_to_try = ["gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-3.5-transcribe"]
 
     context_note = f"\nTranscription Context / Priority Terminology:\n{context.strip()}\n" if context and context.strip() else ""
     prompt = (
-        "You are an expert speech-to-text recognition engine. "
+        "You are an expert speech-to-text recognition engine.\n"
         "Listen to the audio recording and transcribe all spoken words verbatim from start to finish.\n\n"
         f"{context_note}"
         "Rules:\n"
@@ -171,10 +171,17 @@ def transcribe_audio_base64(b64_audio: str, mime_type: str = "audio/wav", contex
     for model in models_to_try:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={GEMINI_API_KEY}"
         try:
-            resp = requests.post(url, json=payload, timeout=35)
+            resp = requests.post(url, json=payload, timeout=25)
             if resp.status_code == 200:
-                text = resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
-                return format_smart_typography(text.strip('"\''))
+                data = resp.json()
+                candidates = data.get("candidates", [])
+                if candidates:
+                    parts = candidates[0].get("content", {}).get("parts", [])
+                    for p in parts:
+                        txt = p.get("text", "").strip()
+                        if txt and txt not in ("<noise>", "<silence>", "Okay."):
+                            print(f"[Gemini STT Success with {model}]: '{txt[:60]}...'")
+                            return format_smart_typography(txt.strip('"\''))
             elif resp.status_code in (429, 503):
                 continue
         except Exception as e:
