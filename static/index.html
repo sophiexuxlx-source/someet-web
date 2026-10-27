@@ -10,14 +10,14 @@
   
   <style>
     :root {
-      --bg: #F4F8FB;              /* Light, crisp sky/ice tint */
-      --card-bg: #FFFFFF;
-      --text: #1E293B;            /* Deep slate */
-      --subtext: #64748B;         /* Muted slate */
-      --primary: #5B9BD5;         /* Excel Accent 5 primary blue */
-      --primary-hover: #41719C;   /* Deep royal steel */
-      --border: #9CC3E5;          /* Excel highlighted swatch (soft cerulean) */
-      --accent-pill: #FCE4D6;     /* Subtle warm peach accent from demo cell */
+      --bg: #F7F5F0;              /* Warm, soft linen off-white */
+      --card-bg: #FAF8F5;         /* Lightened Linen White */
+      --text: #1F2F38;            /* Soft Harbor dark slate text */
+      --subtext: #6A7B84;         /* Muted harbor slate */
+      --primary: #5E8596;         /* Soft Harbor deep coastal blue */
+      --primary-hover: #4F7687;   /* Deep harbor tone */
+      --border: #E5DFD5;          /* Linen border */
+      --accent-pill: #EAE6DF;
     }
     * {
       box-sizing: border-box;
@@ -37,8 +37,8 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid #DCEAF7;
-      background: #FFFFFF;
+      border-bottom: 1px solid #E8E3DA;
+      background: #FAF8F5;
     }
     .logo-container {
       display: flex;
@@ -48,7 +48,7 @@
     .logo-icon {
       width: 28px;
       height: 28px;
-      background: linear-gradient(135deg, #7FABD6, #5B9BD5);
+      background: linear-gradient(135deg, #9FB7C3, #5E8596);
       border-radius: 8px;
       display: flex;
       align-items: center;
@@ -56,12 +56,13 @@
       color: white;
       font-size: 14px;
       font-weight: bold;
-      box-shadow: 0 2px 6px rgba(91, 155, 213, 0.3);
+      box-shadow: 0 2px 6px rgba(94, 133, 150, 0.3);
     }
     .logo-title {
       font-size: 18px;
       font-weight: 700;
       letter-spacing: -0.3px;
+      color: #1F2F38;
     }
     .auth-bar {
       display: flex;
@@ -177,7 +178,7 @@
       font-size: 68px;
       font-weight: 300;
       letter-spacing: -2px;
-      color: #0F172A;
+      color: #1F2F38;
       margin-bottom: 4px;
     }
     .timer-subtitle {
@@ -189,14 +190,71 @@
     /* Cards */
     .studio-card {
       width: 100%;
-      background: white;
-      border: 1px solid var(--border);
       border-radius: 16px;
       padding: 22px 24px;
       text-align: left;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
       margin-bottom: 24px;
+      transition: all 0.2s ease;
     }
+
+    /* Live Caption Card (Top - Lighter Linen White) */
+    .card-caption {
+      background: #FAF8F5;
+      border: 1px solid #E5DFD5;
+      box-shadow: 0 2px 12px rgba(31, 47, 56, 0.04);
+    }
+    .card-caption .card-header-title {
+      color: #6A7B84;
+    }
+    .card-caption .transcript-body {
+      background: #FFFFFF;
+      border: 1px solid #EAE5DC;
+      color: #1F2F38;
+    }
+    .card-caption .transcript-body:hover:not(:focus):not([contenteditable="false"]) {
+      border-color: #D8D2C6;
+      background-color: #FCFBFA;
+    }
+    .card-caption .transcript-body:focus {
+      border-color: #9FB7C3;
+      background-color: #FFFFFF;
+      box-shadow: 0 0 0 2.5px rgba(159, 183, 195, 0.3);
+    }
+
+    /* Speech Summary Card (Bottom - Darker Soft Harbor, lightened) */
+    .card-summary {
+      background: #C4D6E2;
+      border: 1px solid #9FB7C3;
+      box-shadow: 0 4px 18px rgba(31, 47, 56, 0.08);
+    }
+    .card-summary .card-header-title {
+      color: #1F2F38;
+      font-weight: 800;
+    }
+    .card-summary .summary-content {
+      background: #FFFFFF;
+      border: 1px solid #B0C7D5;
+      color: #1F2F38;
+    }
+    .card-summary .summary-content:hover:not(:focus):not([contenteditable="false"]) {
+      border-color: #8EADC0;
+      background-color: #FCFEFF;
+    }
+    .card-summary .summary-content:focus {
+      border-color: #5E8596;
+      background-color: #FFFFFF;
+      box-shadow: 0 0 0 2.5px rgba(94, 133, 150, 0.35);
+    }
+    .card-summary .btn-action {
+      background: #FFFFFF;
+      border: 1px solid #A4BDCB;
+      color: #1F2F38;
+    }
+    .card-summary .btn-action:hover {
+      background: #EAF2F6;
+      color: #0F1D24;
+    }
+
     .card-header-row {
       display: flex;
       justify-content: space-between;
@@ -207,7 +265,7 @@
       font-size: 12px;
       text-transform: uppercase;
       font-weight: 700;
-      color: #64748B;
+      color: #6A7B84;
       letter-spacing: 0.6px;
       display: flex;
       align-items: center;
@@ -218,9 +276,9 @@
       gap: 8px;
     }
     .btn-action {
-      background: #F1F5F9;
-      color: #334155;
-      border: 1px solid #CBD5E1;
+      background: #FFFFFF;
+      color: #1F2F38;
+      border: 1px solid #D5CFC5;
       border-radius: 6px;
       padding: 5px 12px;
       font-size: 12px;
@@ -232,20 +290,20 @@
       transition: all 0.15s;
     }
     .btn-action:hover {
-      background: #E2E8F0;
+      background: #F0ECE4;
       color: #0F172A;
     }
     .btn-action:active {
       transform: scale(0.98);
     }
     .btn-summary {
-      background: linear-gradient(135deg, #7FABD6 0%, #5B9BD5 100%);
-      color: white;
-      border: none;
+      background: linear-gradient(135deg, #7A9FAD 0%, #5E8596 100%) !important;
+      color: white !important;
+      border: none !important;
     }
     .btn-summary:hover {
-      background: linear-gradient(135deg, #5B9BD5 0%, #41719C 100%);
-      color: white;
+      background: linear-gradient(135deg, #6C919F 0%, #4F7687 100%) !important;
+      color: white !important;
     }
 
     .transcript-body {
@@ -256,21 +314,11 @@
       max-height: 420px;
       overflow-y: auto;
       word-break: break-word;
-      padding: 10px 12px;
+      padding: 12px 14px;
       border-radius: 8px;
       outline: none;
-      border: 1px solid transparent;
       cursor: text;
       transition: all 0.15s ease;
-    }
-    .transcript-body:hover:not(:focus):not([contenteditable="false"]) {
-      border-color: #E2E8F0;
-      background-color: #FAFCFE;
-    }
-    .transcript-body:focus {
-      border-color: #5B9BD5;
-      background-color: #FFFFFF;
-      box-shadow: 0 0 0 2.5px rgba(91, 155, 213, 0.2);
     }
     .transcript-body[contenteditable="false"],
     .summary-content[contenteditable="false"] {
@@ -285,27 +333,17 @@
     .summary-content {
       font-size: 14px;
       line-height: 1.65;
-      color: #334155;
-      padding: 10px 12px;
+      color: var(--text);
+      padding: 12px 14px;
       border-radius: 8px;
       outline: none;
-      border: 1px solid transparent;
       cursor: text;
       transition: all 0.15s ease;
-    }
-    .summary-content:hover:not(:focus):not([contenteditable="false"]) {
-      border-color: #E2E8F0;
-      background-color: #FAFCFE;
-    }
-    .summary-content:focus {
-      border-color: #5B9BD5;
-      background-color: #FFFFFF;
-      box-shadow: 0 0 0 2.5px rgba(91, 155, 213, 0.2);
     }
     .summary-content h3 {
       font-size: 15px;
       font-weight: 700;
-      color: #0F172A;
+      color: #1F2F38;
       margin-top: 14px;
       margin-bottom: 6px;
     }
@@ -331,7 +369,7 @@
     .btn-record {
       width: 146px;
       height: 52px;
-      background: linear-gradient(135deg, #7FABD6 0%, #5B9BD5 100%);
+      background: linear-gradient(135deg, #7A9FAD 0%, #5E8596 100%);
       color: white;
       border: none;
       border-radius: 26px;
@@ -343,16 +381,16 @@
       justify-content: center;
       gap: 10px;
       transition: all 0.2s;
-      box-shadow: 0 4px 18px rgba(91, 155, 213, 0.35);
+      box-shadow: 0 4px 18px rgba(94, 133, 150, 0.35);
     }
     .btn-record:hover {
-      background: linear-gradient(135deg, #5B9BD5 0%, #41719C 100%);
+      background: linear-gradient(135deg, #6C919F 0%, #4F7687 100%);
       transform: translateY(-2px);
-      box-shadow: 0 6px 22px rgba(65, 113, 156, 0.45);
+      box-shadow: 0 6px 22px rgba(79, 118, 135, 0.45);
     }
     .btn-record.recording {
-      background: #EF4444;
-      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
+      background: #E05252;
+      box-shadow: 0 4px 14px rgba(224, 82, 82, 0.4);
       animation: pulse 1.8s infinite;
     }
     @keyframes pulse {
@@ -559,7 +597,7 @@
     <div class="timer-subtitle">Click Record to start live captioning, then begin speaking once the timer starts.</div>
 
     <!-- Live Caption Card -->
-    <div class="studio-card">
+    <div class="studio-card card-caption">
       <div class="card-header-row">
         <div class="card-header-title">
           Live Caption <span style="font-size: 11px; color: #94A3B8; font-weight: 500; text-transform: none; margin-left: 8px;">(Click to edit when done)</span>
@@ -574,8 +612,8 @@
       </div>
 
       <!-- Integrated Audio Play & Download Bar in the middle -->
-      <div id="audioBarContainer" style="margin-top: 18px; padding: 10px 14px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-        <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #475569; white-space: nowrap;">
+      <div id="audioBarContainer" style="margin-top: 18px; padding: 10px 14px; background: #F2EFE9; border: 1px solid #DDD7CB; border-radius: 10px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #1F2F38; white-space: nowrap;">
           <span>Audio Playback:</span>
         </div>
         <audio id="audioPlayer" controls style="flex: 1; min-width: 220px; height: 36px; border-radius: 6px;"></audio>
@@ -584,7 +622,7 @@
     </div>
 
     <!-- AI Summary Card -->
-    <div class="studio-card" id="summaryCard">
+    <div class="studio-card card-summary" id="summaryCard">
       <div class="card-header-row">
         <div class="card-header-title">
           Speech Summary <span style="font-size: 11px; color: #94A3B8; font-weight: 500; text-transform: none; margin-left: 8px;">(Click to edit when done)</span>
@@ -1093,21 +1131,21 @@
             audioPlayer.load();
           }
           if (dlBtn) {
-            dlBtn.style.background = '#EBF4FC';
-            dlBtn.style.borderColor = '#9CC3E5';
-            dlBtn.style.color = '#2B6CB0';
+            dlBtn.style.background = '#FFFFFF';
+            dlBtn.style.borderColor = '#9FB7C3';
+            dlBtn.style.color = '#1F2F38';
           }
         }
 
         // Sub-second Gemini Smart Polish: delivers Antigravity-grade punctuation and phonetic accuracy
         if (rawText) {
           if (transcriptEl) {
-            transcriptEl.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${rawText}</span> <span style="color: #5B9BD5; font-size: 13px;">(Polishing...)</span>`;
+            transcriptEl.innerHTML = `<span style="color: #1F2F38; font-weight: 500;">${rawText}</span> <span style="color: #5E8596; font-size: 13px;">(Polishing...)</span>`;
           }
           polishWithGemini(rawText);
         } else if (latestWavBlob) {
           if (transcriptEl) {
-            transcriptEl.innerHTML = `<span style="color: #5B9BD5;">Transcribing...</span>`;
+            transcriptEl.innerHTML = `<span style="color: #5E8596;">Transcribing...</span>`;
           }
           refineWithGemini(latestWavBlob);
         } else {
