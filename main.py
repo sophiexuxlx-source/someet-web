@@ -33,10 +33,13 @@ class TranscribeRequest(BaseModel):
 
 class SummarizeRequest(BaseModel):
     transcript: str
+    context_prompt: str = ""
 
 
 class PolishRequest(BaseModel):
     transcript: str
+    context_prompt: str = ""
+    terms: str = ""
 
 
 @app.on_event("startup")
@@ -98,6 +101,7 @@ async def realtime_ws_endpoint(websocket: WebSocket):
     last_transcribed_text = ""
     is_transcribing = False
     last_transcribe_len = 0
+    session_initial_prompt = ""
     # Transcribe when we accumulate at least 1.5 seconds of new audio (48000 bytes)
     MIN_CHUNK_BYTES = 48000
 
@@ -109,7 +113,7 @@ async def realtime_ws_endpoint(websocket: WebSocket):
         try:
             snapshot = bytes(pcm_buffer)
             last_transcribe_len = len(snapshot)
-            text = await asyncio.to_thread(transcribe_pcm, snapshot)
+            text = await asyncio.to_thread(transcribe_pcm, snapshot, None, session_initial_prompt)
             if text and text != last_transcribed_text:
                 last_transcribed_text = text
                 await websocket.send_json({
@@ -144,7 +148,7 @@ async def realtime_ws_endpoint(websocket: WebSocket):
                         final_text = ""
                         if len(pcm_buffer) >= 3200: # at least 100ms
                             print(f"[WS Stop] Final decoding of {len(pcm_buffer)} audio bytes...")
-                            final_text = await asyncio.to_thread(transcribe_pcm, bytes(pcm_buffer))
+                            final_text = await asyncio.to_thread(transcribe_pcm, bytes(pcm_buffer), None, session_initial_prompt)
                             print(f"[WS Stop] Final transcribed text: '{final_text}'")
 
                         if len(final_text) < len(last_transcribed_text):
@@ -168,7 +172,10 @@ async def realtime_ws_endpoint(websocket: WebSocket):
                         pcm_buffer.clear()
                         last_transcribe_len = 0
                         last_transcribed_text = ""
-                        print("[WS Start] Audio stream initiated")
+                        c_prompt = payload.get("context_prompt", "") or ""
+                        c_terms = payload.get("terms", "") or ""
+                        session_initial_prompt = f"{c_prompt} {c_terms}".strip()
+                        print(f"[WS Start] Audio stream initiated. Context prompt: '{session_initial_prompt}'")
                 except Exception as e:
                     print(f"[WS Control] Error parsing control payload: {e}")
     except WebSocketDisconnect:
@@ -218,7 +225,7 @@ async def summarize_endpoint(req: SummarizeRequest):
     if not req.transcript.strip():
         raise HTTPException(status_code=400, detail="Missing transcript")
 
-    summary = await asyncio.to_thread(summarize_meeting, req.transcript)
+    summary = await asyncio.to_thread(summarize_meeting, req.transcript, req.context_prompt)
     return {
         "success": True,
         "summary": summary
@@ -233,7 +240,7 @@ async def polish_endpoint(req: PolishRequest):
     if not req.transcript.strip():
         return {"success": True, "polished_transcript": ""}
 
-    polished = await asyncio.to_thread(polish_speech_transcript, req.transcript)
+    polished = await asyncio.to_thread(polish_speech_transcript, req.transcript, req.context_prompt, req.terms)
     return {
         "success": True,
         "polished_transcript": polished

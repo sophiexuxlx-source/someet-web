@@ -26,9 +26,10 @@ def get_whisper_model():
     return _whisper_model
 
 
-def transcribe_pcm(pcm_bytes: bytes, language: Optional[str] = None) -> str:
+def transcribe_pcm(pcm_bytes: bytes, language: Optional[str] = None, initial_prompt: Optional[str] = None) -> str:
     """
     Transcribes raw 16kHz mono 16-bit PCM audio stream with built-in VAD.
+    Accepts optional initial_prompt (transcription context & terms) to prime Whisper.
     Returns clean verbatim text with zero chunking artifacts.
     """
     if not pcm_bytes or len(pcm_bytes) < 3200:  # Less than 100ms of 16kHz audio
@@ -44,6 +45,7 @@ def transcribe_pcm(pcm_bytes: bytes, language: Optional[str] = None) -> str:
             audio_float32,
             beam_size=1,
             language=language,
+            initial_prompt=initial_prompt if initial_prompt else None,
             condition_on_previous_text=False,
             repetition_penalty=1.2,
             no_repeat_ngram_size=3,
@@ -59,6 +61,7 @@ def transcribe_pcm(pcm_bytes: bytes, language: Optional[str] = None) -> str:
                 audio_float32,
                 beam_size=1,
                 language=language,
+                initial_prompt=initial_prompt if initial_prompt else None,
                 condition_on_previous_text=False,
                 repetition_penalty=1.2,
                 no_repeat_ngram_size=3,
@@ -121,11 +124,12 @@ def transcribe_audio_base64(b64_audio: str, mime_type: str = "audio/wav", contex
     return ""
 
 
-def polish_speech_transcript(raw_text: str) -> str:
+def polish_speech_transcript(raw_text: str, context_prompt: str = "", terms: str = "") -> str:
     """
     Sub-second Gemini speech intelligence pass:
     - Restores natural punctuation (commas, periods, question marks)
     - Fixes phonetic acoustic slips (e.g. 'in any gravity' -> 'in Antigravity', 'Click record' -> 'click Record')
+    - Incorporates user-supplied domain context prompt and custom terminology/names
     - Preserves user verbatim words and sentences
     """
     if not raw_text or not raw_text.strip():
@@ -133,13 +137,20 @@ def polish_speech_transcript(raw_text: str) -> str:
     if not GEMINI_API_KEY:
         return raw_text
 
+    context_guidance = ""
+    if context_prompt.strip():
+        context_guidance += f"\nDomain Context:\n{context_prompt.strip()}\n"
+    if terms.strip():
+        context_guidance += f"\nPriority Terminology / Proper Nouns (ensure correct spelling and casing):\n{terms.strip()}\n"
+
     prompt = (
         "You are the speech intelligence and punctuation engine for SoMeet.\n"
         "Below is raw acoustic text recognized from a user microphone:\n"
-        f'"""{raw_text.strip()}"""\n\n'
+        f'"""{raw_text.strip()}"""\n'
+        f"{context_guidance}\n"
         "Tasks:\n"
         "1. Restore standard punctuation (commas, periods, question marks).\n"
-        "2. Fix obvious acoustic phonetic recognition slips (e.g., 'in any gravity' -> 'in Antigravity', 'Click record' -> 'click Record', 'never see' -> 'now see', 'queen. Stim' -> 'clean stream') based on natural conversational English.\n"
+        "2. Fix obvious acoustic phonetic recognition slips (e.g., misheard technical jargon, brand names, or proper nouns) using the domain context and terminology provided above.\n"
         "3. Preserve all words and sentences verbatim—do NOT summarize, truncate, or omit content.\n"
         "4. Output ONLY the clean, polished transcript text without any introductory commentary or quotes."
     )
@@ -164,7 +175,7 @@ def polish_speech_transcript(raw_text: str) -> str:
     return raw_text
 
 
-def summarize_meeting(transcript: str) -> str:
+def summarize_meeting(transcript: str, context_prompt: str = "") -> str:
     """
     Uses Google Gemini to generate structured meeting intelligence:
     - Executive Overview
@@ -178,11 +189,16 @@ def summarize_meeting(transcript: str) -> str:
     if not GEMINI_API_KEY:
         return "Summary unavailable: Missing Google Gemini API key."
 
+    context_note = ""
+    if context_prompt.strip():
+        context_note = f"\nADDITIONAL CONTEXT & DOMAIN BACKGROUND:\n{context_prompt.strip()}\n"
+
     prompt = (
         "You are an executive intelligence assistant and chief of staff. "
         "Review the following spoken transcript and generate a structured, professional executive brief.\n\n"
         "TRANSCRIPT:\n"
-        f"\"\"\"\n{transcript.strip()}\n\"\"\"\n\n"
+        f"\"\"\"\n{transcript.strip()}\n\"\"\"\n"
+        f"{context_note}\n"
         "Output format (strict markdown):\n"
         "### 📌 Executive Overview\n"
         "(A crisp 1-2 sentence executive overview diving directly into the core subject, key findings, and outcome. "

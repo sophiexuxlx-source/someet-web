@@ -547,6 +547,110 @@
       color: #64748B;
       line-height: 1.5;
     }
+
+    /* Advanced Modal Styling */
+    .advanced-card {
+      background: #FBF7F7;
+      border-radius: 20px;
+      padding: 30px 28px;
+      max-width: 560px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      text-align: left;
+      box-shadow: 0 20px 40px rgba(62, 52, 51, 0.22);
+      border: 1px solid #A58E8A;
+      position: relative;
+      animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .advanced-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .advanced-badge {
+      color: #7A6966;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      background: #E9E1DF;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .advanced-title {
+      font-size: 26px;
+      font-weight: 800;
+      color: #3E3433;
+      margin-bottom: 6px;
+      letter-spacing: -0.3px;
+    }
+    .advanced-intro {
+      font-size: 13.5px;
+      color: #7A6966;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    .advanced-field-group {
+      margin-bottom: 18px;
+    }
+    .advanced-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #3E3433;
+      margin-bottom: 6px;
+    }
+    .advanced-textarea, .advanced-input {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #D5C8C5;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 13.5px;
+      font-family: inherit;
+      color: #3E3433;
+      background: #FFFFFF;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      outline: none;
+    }
+    .advanced-textarea:focus, .advanced-input:focus {
+      border-color: #A58E8A;
+      box-shadow: 0 0 0 3px rgba(165, 142, 138, 0.2);
+    }
+    .advanced-card-toggle {
+      background: #F4EDED;
+      border: 1px solid #E2D6D3;
+      border-radius: 12px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-top: 22px;
+      margin-bottom: 10px;
+    }
+    .advanced-card-toggle .toggle-text h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #3E3433;
+      margin: 0 0 4px 0;
+    }
+    .advanced-card-toggle .toggle-text p {
+      font-size: 12.5px;
+      color: #7A6966;
+      line-height: 1.45;
+      margin: 0;
+    }
+    .advanced-checkbox {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      accent-color: #A58E8A;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
   </style>
 </head>
 <body>
@@ -558,6 +662,7 @@
       <div class="logo-title">SoMeet</div>
     </div>
     <div class="auth-bar">
+      <button class="btn-action" onclick="openAdvancedModal()" title="Transcription Context & Audio Settings">Advanced</button>
       <button class="btn-action" onclick="openPrivacyModal()" title="View Privacy note">Privacy</button>
       <button class="btn-action" id="authBtn" onclick="handleAuth()">Sign In</button>
     </div>
@@ -615,6 +720,11 @@
       <button class="btn-record" id="recordBtn" onclick="toggleRecording()">
         <span id="btnText">Record</span>
       </button>
+      <div style="display: flex; gap: 16px; justify-content: center; margin-top: 14px; align-items: center;">
+        <button onclick="openAdvancedModal()" style="background: none; border: none; font-size: 13px; color: #7A6966; cursor: pointer; font-weight: 500; padding: 2px 6px; text-decoration: underline; text-underline-offset: 3px;">Advanced</button>
+        <span style="color: #B59E9A; font-size: 12px;">•</span>
+        <button onclick="openPrivacyModal()" style="background: none; border: none; font-size: 13px; color: #7A6966; cursor: pointer; font-weight: 500; padding: 2px 6px; text-decoration: underline; text-underline-offset: 3px;">Privacy</button>
+      </div>
     </div>
   </main>
 
@@ -685,6 +795,38 @@
 
       <div style="margin-top: 18px; display: flex; justify-content: flex-end;">
         <button class="btn-action" onclick="closePrivacyModal()" style="background: #2E7D32; color: white; border: none; padding: 8px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Advanced Modal -->
+  <div class="modal-overlay" id="advancedModal">
+    <div class="advanced-card">
+      <div class="advanced-header">
+        <div class="advanced-badge">ADVANCED</div>
+        <button class="modal-close-btn" onclick="closeAdvancedModal()" style="position: static; font-size: 13px; background: #E9E1DF; border-radius: 20px; padding: 4px 14px; color: #3E3433; font-weight: 600;">Close</button>
+      </div>
+      <h2 class="advanced-title">Transcription context</h2>
+      <p class="advanced-intro">
+        Leave this empty for normal transcription. Add context only when names or technical terms are repeatedly misheard.
+      </p>
+
+      <div class="advanced-field-group">
+        <label class="advanced-label" for="advContextPrompt">Context prompt</label>
+        <textarea class="advanced-textarea" id="advContextPrompt" rows="3" placeholder="e.g. This recording may mention Superlinear Academy, OpenCode, Logto, and realtime transcription." oninput="saveAdvancedSettings()"></textarea>
+      </div>
+
+      <div class="advanced-field-group">
+        <label class="advanced-label" for="advTerms">Names and terms (comma-separated)</label>
+        <input class="advanced-input" type="text" id="advTerms" placeholder="e.g. VoiceFlow, Superlinear, OpenCode" oninput="saveAdvancedSettings()">
+      </div>
+
+      <div class="advanced-card-toggle">
+        <div class="toggle-text">
+          <h4>Warm microphone</h4>
+          <p>After permission is granted, keep the local microphone pipeline ready so recording starts faster. Warm-up audio is not saved or sent to the backend.</p>
+        </div>
+        <input type="checkbox" id="advWarmMic" class="advanced-checkbox" checked onchange="handleWarmMicToggle()">
       </div>
     </div>
   </div>
@@ -764,6 +906,15 @@
     window.addEventListener('DOMContentLoaded', () => {
       initFirebaseAuth();
 
+      // Close modals on overlay backdrop click
+      document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', (e) => {
+          if (e.target === overlay) {
+            overlay.classList.remove('active');
+          }
+        });
+      });
+
       // Enable direct in-place editing synchronization
       const transcriptBox = document.getElementById('transcriptText');
       if (transcriptBox) {
@@ -817,6 +968,47 @@
     function closePrivacyModal() {
       const modal = document.getElementById('privacyModal');
       if (modal) modal.classList.remove('active');
+    }
+
+    // Warm Microphone & Advanced Context State
+    let warmMediaStream = null;
+
+    function openAdvancedModal() {
+      const modal = document.getElementById('advancedModal');
+      const promptInput = document.getElementById('advContextPrompt');
+      const termsInput = document.getElementById('advTerms');
+      const warmMicInput = document.getElementById('advWarmMic');
+
+      if (promptInput) promptInput.value = localStorage.getItem('someet_context_prompt') || '';
+      if (termsInput) termsInput.value = localStorage.getItem('someet_terms') || '';
+      if (warmMicInput) {
+        const savedWarm = localStorage.getItem('someet_warm_mic');
+        warmMicInput.checked = savedWarm !== null ? savedWarm === 'true' : true;
+      }
+
+      if (modal) modal.classList.add('active');
+    }
+
+    function closeAdvancedModal() {
+      const modal = document.getElementById('advancedModal');
+      if (modal) modal.classList.remove('active');
+    }
+
+    function saveAdvancedSettings() {
+      const promptInput = document.getElementById('advContextPrompt');
+      const termsInput = document.getElementById('advTerms');
+      if (promptInput) localStorage.setItem('someet_context_prompt', promptInput.value);
+      if (termsInput) localStorage.setItem('someet_terms', termsInput.value);
+    }
+
+    function handleWarmMicToggle() {
+      const warmMicInput = document.getElementById('advWarmMic');
+      const isChecked = warmMicInput ? warmMicInput.checked : true;
+      localStorage.setItem('someet_warm_mic', isChecked ? 'true' : 'false');
+      if (!isChecked && warmMediaStream && !isRecording) {
+        warmMediaStream.getTracks().forEach(t => t.stop());
+        warmMediaStream = null;
+      }
     }
 
     async function signInWithGoogle() {
@@ -892,14 +1084,24 @@
           googleSpeechInterimText = "";
           liveStreamingText = "";
 
-          // 1. Request microphone
-          mediaStream = await navigator.mediaDevices.getUserMedia({
-            audio: {
-              channelCount: 1,
-              echoCancellation: true,
-              noiseSuppression: true
+          // 1. Request microphone or reuse warm microphone
+          const isWarmMicEnabled = localStorage.getItem('someet_warm_mic') !== 'false';
+          const isStreamLive = warmMediaStream && warmMediaStream.active && warmMediaStream.getAudioTracks().some(t => t.readyState === 'live');
+
+          if (isWarmMicEnabled && isStreamLive) {
+            mediaStream = warmMediaStream;
+          } else {
+            mediaStream = await navigator.mediaDevices.getUserMedia({
+              audio: {
+                channelCount: 1,
+                echoCancellation: true,
+                noiseSuppression: true
+              }
+            });
+            if (isWarmMicEnabled) {
+              warmMediaStream = mediaStream;
             }
-          });
+          }
 
           // 2. Open Realtime WebSocket
           const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -909,9 +1111,16 @@
           receivedWsTranscript = false;
           liveStreamingText = "";
 
+          const cPrompt = localStorage.getItem('someet_context_prompt') || '';
+          const cTerms = localStorage.getItem('someet_terms') || '';
+
           ws.onopen = () => {
-            console.log("[WS] Connected, sending start");
-            ws.send(JSON.stringify({ type: 'start' }));
+            console.log("[WS] Connected, sending start with transcription context");
+            ws.send(JSON.stringify({ 
+              type: 'start',
+              context_prompt: cPrompt,
+              terms: cTerms
+            }));
           };
 
           ws.onmessage = (event) => {
@@ -1135,10 +1344,16 @@
 
     async function polishWithGemini(rawText) {
       try {
+        const cPrompt = localStorage.getItem('someet_context_prompt') || '';
+        const cTerms = localStorage.getItem('someet_terms') || '';
         const resp = await fetch('/api/polish', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ transcript: rawText })
+          body: JSON.stringify({ 
+            transcript: rawText,
+            context_prompt: cPrompt,
+            terms: cTerms
+          })
         });
         if (resp.ok) {
           const data = await resp.json();
@@ -1229,9 +1444,11 @@
         try { audioContext.close(); } catch(e) {}
         audioContext = null;
       }
-      if (mediaStream) {
+      const isWarmMicEnabled = localStorage.getItem('someet_warm_mic') !== 'false';
+      if (!isWarmMicEnabled && mediaStream) {
         mediaStream.getTracks().forEach(t => t.stop());
         mediaStream = null;
+        warmMediaStream = null;
       }
 
       if (speechRecognizer) {
@@ -1300,10 +1517,14 @@
       sumEl.setAttribute('contenteditable', 'false');
 
       try {
+        const cPrompt = localStorage.getItem('someet_context_prompt') || '';
         const resp = await fetch('/api/summarize', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ transcript: accumulatedText })
+          body: JSON.stringify({ 
+            transcript: accumulatedText,
+            context_prompt: cPrompt
+          })
         });
 
         if (!resp.ok) {
