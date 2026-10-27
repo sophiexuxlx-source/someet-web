@@ -1114,11 +1114,8 @@
     </div>
   </div>
 
-  <!-- Notification Toast -->
-  <div id="someetToast" style="position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #3E3433; color: #FFFFFF; padding: 10px 22px; border-radius: 24px; font-size: 13.5px; font-weight: 500; box-shadow: 0 8px 24px rgba(62,52,51,0.25); transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s; opacity: 0; z-index: 9999; pointer-events: none; display: flex; align-items: center; gap: 8px;">
-    <span id="toastIcon">✨</span>
-    <span id="toastMsg">Welcome! 120 minutes of beta speech recording is active.</span>
-  </div>
+  <!-- Notification Toast (Hidden) -->
+  <div id="someetToast" style="display: none;"></div>
 
 
   <script>
@@ -1420,21 +1417,11 @@
           firebase.initializeApp(config.firebase);
           firebase.auth().onAuthStateChanged(async (user) => {
             if (user) {
-              const wasLoggedOut = !currentUser;
               currentUser = user;
               firebaseIdToken = await user.getIdToken();
               await fetchUserTierProfile();
               updateTierUI();
               closeAuthModal();
-              if (wasLoggedOut) {
-                const email = (user.email || "").toLowerCase();
-                const isUnlimited = userTierInfo.is_unlimited || LIFETIME_UNLIMITED_EMAILS.includes(email);
-                if (isUnlimited) {
-                  showToast("Welcome Sophie! Lifetime Unlimited Access active.", "👑");
-                } else {
-                  showToast("Signed in! 1 hour of free speech recording activated.", "⏱️");
-                }
-              }
             } else {
               currentUser = null;
               firebaseIdToken = null;
