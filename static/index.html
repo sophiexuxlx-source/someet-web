@@ -1014,17 +1014,13 @@
               speechRecognizer.lang = 'en-US';
 
               speechRecognizer.onresult = (event) => {
-                let interim = '';
+                let preview = '';
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
-                  const part = event.results[i][0].transcript;
-                  if (event.results[i].isFinal) {
-                    commitTranscript(part);
-                  } else {
-                    interim += part;
-                  }
+                  preview += event.results[i][0].transcript;
                 }
-                if (interim.trim() && !receivedWsTranscript) {
-                  renderInterimTranscript(interim.trim());
+                // Only use browser speech as an instant typing preview if server hasn't sent a transcript yet
+                if (preview.trim() && !receivedWsTranscript) {
+                  renderInterimTranscript(preview.trim());
                 }
               };
 
@@ -1085,7 +1081,7 @@
         }
 
         const transcriptEl = document.getElementById('transcriptText');
-        const currentDisplay = (accumulatedText ? accumulatedText + " " : "") + (liveStreamingText || "");
+        const currentDisplay = liveStreamingText || accumulatedText || "";
         if (currentDisplay.trim()) {
           transcriptEl.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${currentDisplay.trim()}</span> <span style="color: #5B9BD5; font-size: 13px;">(✨ Finalizing full transcript with AI...)</span>`;
         } else {
@@ -1234,24 +1230,13 @@
       if (!currentText || !currentText.trim()) return;
       liveStreamingText = currentText.trim();
       const el = document.getElementById('transcriptText');
-      let displayText = currentText.trim();
-      if (accumulatedText && !displayText.includes(accumulatedText) && !accumulatedText.includes(displayText)) {
-        displayText = `${accumulatedText} ${displayText}`;
-      }
-      el.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${displayText}</span>`;
+      el.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${liveStreamingText}</span>`;
       el.scrollTop = el.scrollHeight;
     }
 
     function commitTranscript(completedText) {
       if (!completedText || !completedText.trim()) return;
-      completedText = completedText.trim();
-      if (!accumulatedText) {
-        accumulatedText = completedText;
-      } else if (completedText.length > accumulatedText.length && completedText.includes(accumulatedText)) {
-        accumulatedText = completedText;
-      } else if (!accumulatedText.includes(completedText)) {
-        accumulatedText += " " + completedText;
-      }
+      accumulatedText = completedText.trim();
       liveStreamingText = "";
       const el = document.getElementById('transcriptText');
       el.innerHTML = `<span style="color: #0F172A; font-weight: 500;">${accumulatedText}</span>`;
