@@ -37,6 +37,7 @@ def format_smart_typography(text: str) -> str:
 
     # 1. Brand, symbols & common phrases
     t = re.sub(r'\bso\s*(?:meet|mete)\b', 'SoMeet', t, flags=re.I)
+    t = re.sub(r'\bmask\s*card\b', 'mascot', t, flags=re.I)
     t = re.sub(r'\band\s+or\b', 'and/or', t, flags=re.I)
     t = re.sub(r'(\d+\+?\s*)year\b(?!\s*s)', r'\g<1>years', t, flags=re.I)
     t = re.sub(r'\b(cpa|cfa|mba|pmp|ca|acca|cma)\b', lambda m: m.group(0).upper(), t, flags=re.I)
@@ -151,7 +152,7 @@ def transcribe_pcm(pcm_bytes: bytes, language: Optional[str] = None, initial_pro
                 temperature=0.0
             )
             texts = [seg.text.strip() for seg in segments if seg.text.strip()]
-        return " ".join(texts)
+        return format_smart_typography(" ".join(texts))
     except Exception as e:
         print(f"[ASR Engine] Transcription error: {e}")
         return ""
@@ -231,7 +232,7 @@ def polish_speech_transcript(raw_text: str, context_prompt: str = "", terms: str
     if not raw_text or not raw_text.strip():
         return ""
     if not GEMINI_API_KEY:
-        return raw_text
+        return format_smart_typography(raw_text)
 
     context_guidance = ""
     if context_prompt.strip():
@@ -272,7 +273,7 @@ def polish_speech_transcript(raw_text: str, context_prompt: str = "", terms: str
             print(f"[Speech Polish Error with {model}]: {e}")
             continue
 
-    return raw_text
+    return format_smart_typography(raw_text)
 
 
 def summarize_meeting(transcript: str, context_prompt: str = "") -> str:

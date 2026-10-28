@@ -12,7 +12,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 from pathlib import Path
 from auth import get_current_user
-from asr_engine import transcribe_audio_base64, transcribe_pcm, summarize_meeting, get_whisper_model, polish_speech_transcript
+from asr_engine import transcribe_audio_base64, transcribe_pcm, summarize_meeting, get_whisper_model, polish_speech_transcript, format_smart_typography
 from usage_service import get_user_usage, add_user_usage, save_capacity_request
 from config import BASE_DIR
 
@@ -201,9 +201,10 @@ async def realtime_ws_endpoint(websocket: WebSocket):
                 cumulative_text = " ".join(part for part in full_parts if part).strip()
 
                 if cumulative_text:
+                    clean_cum = format_smart_typography(cumulative_text)
                     await websocket.send_json({
                         "type": "transcript_delta",
-                        "text": cumulative_text
+                        "text": clean_cum
                     })
         except Exception as e:
             print(f"[WS Incremental Decode Error] {e}")
@@ -251,6 +252,7 @@ async def realtime_ws_endpoint(websocket: WebSocket):
                         print(f"[WS Stop] Final session transcript: '{final_full_text}'")
 
                         if final_full_text:
+                            final_full_text = format_smart_typography(final_full_text)
                             await websocket.send_json({
                                 "type": "transcript_completed",
                                 "text": final_full_text
