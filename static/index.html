@@ -877,6 +877,26 @@
     </div>
     <div class="auth-bar">
       <button class="btn-action" id="authBtn" onclick="handleAuth()">Sign In</button>
+      <script>
+        (function() {
+          try {
+            var raw = localStorage.getItem('someet_cached_user');
+            if (raw) {
+              var u = JSON.parse(raw);
+              if (u && u.email) {
+                var email = u.email.toLowerCase();
+                var isFounder = email === 'sophiexuxlx@gmail.com' || email === 'xusophiexiaoxiao@gmail.com';
+                var name = u.displayName || email.split('@')[0];
+                var btn = document.getElementById('authBtn');
+                if (btn) {
+                  btn.innerText = isFounder ? ('👑 ' + name) : name;
+                  btn.title = isFounder ? 'Founder Account • Lifetime Unlimited Access (Click to view account)' : ('Signed in as ' + u.email);
+                }
+              }
+            }
+          } catch(e) {}
+        })();
+      </script>
     </div>
   </header>
 
@@ -1587,25 +1607,25 @@ registerProcessor('pcm-worklet-processor', PcmWorkletProcessor);
               updateTierUI();
               closeAuthModal();
             } else {
-              currentUser = null;
-              firebaseIdToken = null;
-              try {
-                localStorage.removeItem('someet_cached_user');
-                localStorage.removeItem('someet_cached_token');
-                localStorage.removeItem('someet_cached_tier');
-              } catch(e) {}
-              userTierInfo = {
-                is_unlimited: false,
-                is_whitelisted: false,
-                tier: "Private Beta (Invite Required)",
-                quota_seconds: 7200,
-                used_seconds: 0,
-                remaining_seconds: 0,
-                is_exhausted: false,
-                admin_contact: "sophiexuxlx@gmail.com"
-              };
-              resetAuthUI();
-              updateTierUI();
+              // If user was cached in localStorage, do NOT drop session on transient initialization nulls.
+              // Session is ONLY cleared when user explicitly clicks "Sign Out of Account".
+              const hasCached = !!localStorage.getItem('someet_cached_user');
+              if (!hasCached) {
+                currentUser = null;
+                firebaseIdToken = null;
+                userTierInfo = {
+                  is_unlimited: false,
+                  is_whitelisted: false,
+                  tier: "Private Beta (Invite Required)",
+                  quota_seconds: 7200,
+                  used_seconds: 0,
+                  remaining_seconds: 0,
+                  is_exhausted: false,
+                  admin_contact: "sophiexuxlx@gmail.com"
+                };
+                resetAuthUI();
+                updateTierUI();
+              }
             }
           });
           authInitialized = true;
