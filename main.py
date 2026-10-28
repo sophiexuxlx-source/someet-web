@@ -62,8 +62,15 @@ async def startup_warmup():
 
 @app.api_route("/", methods=["GET", "HEAD"])
 async def get_index():
-    """Serves the main SoMeet web interface."""
-    return FileResponse(STATIC_DIR / "index.html")
+    """Serves the main SoMeet web interface with no-cache headers."""
+    return FileResponse(
+        STATIC_DIR / "index.html",
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        }
+    )
 
 
 @app.get("/api/config")
