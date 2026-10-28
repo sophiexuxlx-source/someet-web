@@ -8,6 +8,34 @@
   <!-- Firebase JS SDK (v10 modular CDN) -->
   <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
+  <script>
+    const FIREBASE_CONFIG = {
+      apiKey: "AIzaSyBKwuDSvP6YU5QMvSm6ZqVhW8g9JpNnbK4",
+      authDomain: "supermind-ai-auth.firebaseapp.com",
+      projectId: "supermind-ai-auth"
+    };
+    if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+      try {
+        firebase.initializeApp(FIREBASE_CONFIG);
+      } catch (e) {
+        console.warn("[Firebase] Synchronous init error:", e);
+      }
+    }
+    function getPersistedUser() {
+      try {
+        let raw = localStorage.getItem('someet_cached_user');
+        if (raw) return JSON.parse(raw);
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.indexOf('firebase:authUser') !== -1) {
+            const val = localStorage.getItem(k);
+            if (val) return JSON.parse(val);
+          }
+        }
+      } catch(e) {}
+      return null;
+    }
+  </script>
   
   <style>
     :root {
@@ -876,25 +904,23 @@
       <div class="logo-title">SoMeet</div>
     </div>
     <div class="auth-bar">
-      <button class="btn-action" id="authBtn" onclick="handleAuth()">Sign In</button>
+      <button class="btn-action" id="authBtn" onclick="handleAuth()"></button>
       <script>
         (function() {
-          try {
-            var raw = localStorage.getItem('someet_cached_user');
-            if (raw) {
-              var u = JSON.parse(raw);
-              if (u && u.email) {
-                var email = u.email.toLowerCase();
-                var isFounder = email === 'sophiexuxlx@gmail.com' || email === 'xusophiexiaoxiao@gmail.com';
-                var name = u.displayName || email.split('@')[0];
-                var btn = document.getElementById('authBtn');
-                if (btn) {
-                  btn.innerText = isFounder ? ('👑 ' + name) : name;
-                  btn.title = isFounder ? 'Founder Account • Lifetime Unlimited Access (Click to view account)' : ('Signed in as ' + u.email);
-                }
-              }
-            }
-          } catch(e) {}
+          var btn = document.getElementById('authBtn');
+          if (!btn) return;
+          var u = typeof getPersistedUser === 'function' ? getPersistedUser() : null;
+          if (u && u.email) {
+            var email = u.email.toLowerCase();
+            var isFounder = email === 'sophiexuxlx@gmail.com' || email === 'xusophiexiaoxiao@gmail.com';
+            var name = u.displayName || email.split('@')[0];
+            btn.innerText = isFounder ? ('👑 ' + name) : name;
+            btn.title = isFounder ? 'Founder Account • Lifetime Unlimited Access (Click to view account)' : ('Signed in as ' + u.email);
+            btn.onclick = openCapacityModal;
+          } else {
+            btn.innerText = "Sign In";
+            btn.onclick = openAuthModal;
+          }
         })();
       </script>
     </div>
@@ -1248,14 +1274,13 @@ registerProcessor('pcm-worklet-processor', PcmWorkletProcessor);
 
     // Optimistic Instant Session Restorer (eliminates logout/login flicker on page refresh)
     try {
-      const savedUserStr = localStorage.getItem('someet_cached_user');
+      const u = typeof getPersistedUser === 'function' ? getPersistedUser() : null;
       const savedTierStr = localStorage.getItem('someet_cached_tier');
       firebaseIdToken = localStorage.getItem('someet_cached_token') || null;
-      if (savedUserStr) {
-        const u = JSON.parse(savedUserStr);
+      if (u) {
         currentUser = {
           ...u,
-          getIdToken: async () => firebaseIdToken || ""
+          getIdToken: async () => firebaseIdToken || (u.stsTokenManager && u.stsTokenManager.accessToken) || ""
         };
       }
       if (savedTierStr) {
@@ -1324,6 +1349,21 @@ registerProcessor('pcm-worklet-processor', PcmWorkletProcessor);
     function updateTierUI() {
       const authBtn = document.getElementById('authBtn');
       if (!authBtn) return;
+
+      if (!currentUser && typeof getPersistedUser === 'function') {
+        const u = getPersistedUser();
+        if (u) {
+          currentUser = {
+            ...u,
+            getIdToken: async () => firebaseIdToken || (u.stsTokenManager && u.stsTokenManager.accessToken) || ""
+          };
+          const email = (u.email || "").toLowerCase();
+          if (LIFETIME_UNLIMITED_EMAILS.includes(email)) {
+            userTierInfo.is_unlimited = true;
+            userTierInfo.tier = "Founder (Lifetime Unlimited)";
+          }
+        }
+      }
 
       if (!currentUser) {
         authBtn.innerText = "Sign In";
@@ -1584,52 +1624,49 @@ registerProcessor('pcm-worklet-processor', PcmWorkletProcessor);
     let authInitialized = false;
     async function initFirebaseAuth() {
       try {
-        const res = await fetch('/api/config');
-        if (!res.ok) return;
-        const config = await res.json();
-        if (config && config.firebase && !firebase.apps.length) {
-          firebase.initializeApp(config.firebase);
-          firebase.auth().onAuthStateChanged(async (user) => {
-            if (user) {
-              currentUser = user;
-              try {
-                localStorage.setItem('someet_cached_user', JSON.stringify({
-                  uid: user.uid,
-                  email: user.email,
-                  displayName: user.displayName || user.email.split('@')[0]
-                }));
-              } catch(e) {}
-              firebaseIdToken = await user.getIdToken();
-              try {
-                localStorage.setItem('someet_cached_token', firebaseIdToken);
-              } catch(e) {}
-              await fetchUserTierProfile();
-              updateTierUI();
-              closeAuthModal();
-            } else {
-              // If user was cached in localStorage, do NOT drop session on transient initialization nulls.
-              // Session is ONLY cleared when user explicitly clicks "Sign Out of Account".
-              const hasCached = !!localStorage.getItem('someet_cached_user');
-              if (!hasCached) {
-                currentUser = null;
-                firebaseIdToken = null;
-                userTierInfo = {
-                  is_unlimited: false,
-                  is_whitelisted: false,
-                  tier: "Private Beta (Invite Required)",
-                  quota_seconds: 7200,
-                  used_seconds: 0,
-                  remaining_seconds: 0,
-                  is_exhausted: false,
-                  admin_contact: "sophiexuxlx@gmail.com"
-                };
-                resetAuthUI();
-                updateTierUI();
-              }
-            }
-          });
-          authInitialized = true;
+        if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+          firebase.initializeApp(FIREBASE_CONFIG);
         }
+        firebase.auth().onAuthStateChanged(async (user) => {
+          if (user) {
+            currentUser = user;
+            try {
+              localStorage.setItem('someet_cached_user', JSON.stringify({
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName || user.email.split('@')[0]
+              }));
+            } catch(e) {}
+            firebaseIdToken = await user.getIdToken();
+            try {
+              localStorage.setItem('someet_cached_token', firebaseIdToken);
+            } catch(e) {}
+            await fetchUserTierProfile();
+            updateTierUI();
+            closeAuthModal();
+          } else {
+            // If user was cached in localStorage or Firebase IndexedDB, do NOT drop session on transient initialization nulls.
+            // Session is ONLY cleared when user explicitly clicks "Sign Out of Account".
+            const hasCached = !!getPersistedUser();
+            if (!hasCached) {
+              currentUser = null;
+              firebaseIdToken = null;
+              userTierInfo = {
+                is_unlimited: false,
+                is_whitelisted: false,
+                tier: "Private Beta (Invite Required)",
+                quota_seconds: 7200,
+                used_seconds: 0,
+                remaining_seconds: 0,
+                is_exhausted: false,
+                admin_contact: "sophiexuxlx@gmail.com"
+              };
+              resetAuthUI();
+              updateTierUI();
+            }
+          }
+        });
+        authInitialized = true;
       } catch (err) {
         console.warn("[Firebase] Init error:", err);
       }
